@@ -1,0 +1,14 @@
+.container {
+  background: rgb(27, 24, 69);
+  background: linear-gradient(
+    90deg,
+    rgba(27, 24, 69, 0.9) 0%,
+    rgba(55, 42, 65, 0.9) 35%,
+    rgba(21, 24, 112, 1) 100%
+  );
+  padding: 20px; /* Optional: Add some padding for better layout */
+  border-radius: 8px; /* Optional: Add rounded corners */
+  color: white; /* Change text color for visibility */
+  max-width: 500px; /* Optional: Limit width for better presentation */
+  margin: auto; /* Center the container */
+}
