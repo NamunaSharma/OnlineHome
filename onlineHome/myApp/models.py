@@ -12,7 +12,8 @@ class ServiceProvider(models.Model):
         ('carpenter', 'Carpenter'),
     ])
     experience_years = models.PositiveIntegerField()
-    location = models.CharField(max_length=100)
+    latitude = models.FloatField(default=00.0)
+    longitude = models.FloatField( default=00.0)
     profile_picture = models.ImageField(upload_to='provider_profiles/', blank=True, null=True)
 
     def __str__(self):
@@ -22,7 +23,8 @@ class ServiceProvider(models.Model):
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15)
-    location = models.CharField(max_length=100, blank=True, null=True)
+    latitude = models.FloatField(default=00.0)
+    longitude = models.FloatField( default=00.0)
     profile_picture = models.ImageField(upload_to='customer_profiles/', blank=True, null=True)
 
     def __str__(self):

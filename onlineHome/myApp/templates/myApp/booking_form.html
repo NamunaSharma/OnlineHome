@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Service</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+      #map {
+        height: 400px; /* Set the height of the map */
+        width: 100%; /* Set the width of the map */
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Book a Service</h1>
+    <!-- HTML Form to Capture User Location -->
+    <form method="POST" action="{% url 'nearest' %}">
+      {% csrf_token %}
+      <div class="label-input-container">
+        <label for="location">Location:</label>
+        <input
+          type="text"
+          id="location"
+          name="location"
+          placeholder="Latitude, Longitude"
+          required
+        />
+        <button type="button" onclick="getCurrentLocation()">
+          Use Current Location
+        </button>
+      </div>
+      <div id="map"></div>
+      <!-- Map Container -->
+      <button type="submit">Find Nearest Service Providers</button>
+    </form>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+      // Initialize map
+      const map = L.map("map").setView([27.7, 85.32], 13); // Set initial view to a central point (adjust as needed)
+
+      // Add OpenStreetMap tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap",
+      }).addTo(map);
+
+      // Marker for user-selected location
+      let marker;
+
+      // Add click event to the map
+      map.on("click", function (e) {
+        const latLng = e.latlng;
+        if (marker) {
+          map.removeLayer(marker); // Remove previous marker
+        }
+        marker = L.marker(latLng).addTo(map); // Add new marker
+        document.getElementById(
+          "location"
+        ).value = `${latLng.lat}, ${latLng.lng}`; // Set input value
+      });
+
+      function getCurrentLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function (position) {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
+              document.getElementById("location").value = `${lat}, ${lng}`;
+              map.setView([lat, lng], 13); // Center the map on the user's location
+              if (marker) {
+                map.removeLayer(marker); // Remove previous marker
+              }
+              marker = L.marker([lat, lng]).addTo(map); // Add marker at user location
+            },
+            function () {
+              alert("Unable to retrieve your location.");
+            }
+          );
+        } else {
+          alert("Geolocation is not supported by this browser.");
+        }
+      }
+    </script>
+  </body>
+</html>

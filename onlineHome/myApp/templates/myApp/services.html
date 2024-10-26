@@ -17,8 +17,8 @@
         <h2>{{ service.title }}</h2>
         <p>{{ service.description }}</p>
         <p>Price: ${{ service.price }}</p>
-        <p>Created At: {{ service.created_at }}</p>
-        <p>Updated At: {{ service.updated_at }}</p>
+        {% comment %} <p>Created At: {{ service.created_at }}</p>
+        <p>Updated At: {{ service.updated_at }}</p> {% endcomment %}
         <img
           src="{{ service.image }}"
           alt="{{ service.title }}"

@@ -15,12 +15,12 @@ class RegistrationForm(forms.ModelForm):
 class ServiceProviderForm(forms.ModelForm):
     class Meta:
         model = ServiceProvider
-        fields = ['phone_number', 'service_type', 'experience_years', 'location', 'profile_picture']
+        fields = ['phone_number', 'service_type','longitude','latitude', 'experience_years','profile_picture']
 
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ['phone_number', 'location', 'profile_picture']
+        fields = ['phone_number','longitude','latitude','profile_picture']
 
 class BookingForm(forms.ModelForm):
     class Meta:

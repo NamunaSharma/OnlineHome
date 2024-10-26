@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Profile</title>
+  </head>
+  <body>
+    <h1>{{ customer.user.username }}'s Profile</h1>
+    <p>{{customer.user.email}} Email</p>
+    <p>{{customer.phone_number}} Phone number</p>
+
+    {% if customer.profile_picture %}
+    <img
+      src="{{customer.profile_picture.url }}"
+      alt="Profile Picture"
+      width="200"
+      height="200"
+    />
+    {% else %}
+    <p>No profile picture available</p>
+    {% endif %}
+  </body>
+</html>
