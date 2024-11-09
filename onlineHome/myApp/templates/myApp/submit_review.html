@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Submit a Review for {{ provider.user.username }}</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+  </head>
+  <body>
+    <h1>Submit a Review for {{ provider.user.username }}</h1>
+
+    <form method="post">
+      {% csrf_token %} {% if booking %}
+      <p>Booking Status: {{ booking.status }}</p>
+
+      {% if booking.status != 'completed' %}
+      <p>This booking cannot be reviewed yet as it is not completed.</p>
+      {% else %} {{ form.as_p }}
+      <button type="submit">Submit Review</button>
+      {% endif %} {% endif %}
+    </form>
+  </body>
+</html>

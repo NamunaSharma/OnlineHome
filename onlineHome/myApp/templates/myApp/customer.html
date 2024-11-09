@@ -1,1 +1,388 @@
-{% load static %} 
+{% include 'myApp/navbar.html' %} {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comtech - Repair & Servicing</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #f8f8f8;
+        line-height: 1.6;
+      }
+      .header {
+        background: rgb(72, 97, 106);
+        background: linear-gradient(
+          0deg,
+          rgba(72, 97, 106, 0.7327381636248249) 36%,
+          rgba(146, 137, 137, 0.6038866230085784) 100%
+        );
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        margin-bottom: 30px;
+        height: 600px;
+        min-height: 400px;
+        {% comment %} color: #fff; {% endcomment %}
+      }
+
+      .header .hero-text {
+        width: 50%;
+        text-align: left;
+        margin-left: 20px;
+        color: black;
+        margin:4%;
+      }
+
+      .header .hero-text h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 5%;
+        color: black;
+
+      }
+
+      .header .hero-text p {
+        font-size: 1.5rem;
+        margin-bottom: 25px;
+        opacity: 0.8;
+        color: black;
+        {% comment %} font-family: "Times New Roman", Times, serif;{% endcomment %}\
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .hero-btn {
+        padding: 12px 30px;
+        background-color: #ff4d4d;
+        border: none;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .hero-btn:hover {
+        background-color: #e63946;
+      }
+
+      .header .hero-img {
+        width: 45%;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      @keyframes fadeIn {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      /* About Section */
+      .about {
+        display: flex;
+        padding: 80px 10%;
+        background-color: #fff;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .about img {
+        width: 45%;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .about-content {
+        margin-left: 30px;
+      }
+
+      .about h2 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .about p {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+
+      .about-btn {
+        padding: 12px 25px;
+        background-color: #0073e6;
+        color: white;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .about-btn:hover {
+        background-color: #005bb5;
+      }
+
+      /* Why Choose EasyHome Section */
+      .why-choose-easyhome {
+        text-align: center;
+        padding: 80px 20px;
+        background: linear-gradient(135deg, #34115a, #818080);
+        color: #fff;
+      }
+
+      .why-choose-easyhome h2 {
+        font-size: 3rem;
+        margin-bottom: 30px;
+      }
+
+      .reasons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 40px;
+        margin: 0 auto;
+        max-width: 1200px;
+      }
+
+      .reason {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .reason:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      .reason h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: #230c35;
+      }
+
+      .reason p {
+        font-size: 1.1rem;
+        color: #333;
+      }
+
+      /* Services Section */
+      .services {
+        text-align: center;
+        padding: 80px 20px;
+      }
+
+      .service-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+      }
+
+      .service-item {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .service-item:hover {
+        transform: translateY(-10px);
+      }
+
+      .service-item h4 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+      }
+
+      .service-item p {
+        font-size: 1rem;
+        color: #666;
+      }
+
+      /* Footer Section */
+      .footer {
+        margin-top: 2%;
+        background: linear-gradient(
+          0deg,
+          rgba(57, 57, 58, 1) 0%,
+          rgba(47, 47, 47, 1) 100%
+        );
+        padding: 40px 0;
+        color: #f1f1f1;
+        font-size: 1.1rem;
+      }
+
+      .footerdiv {
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        max-width: 80%;
+      }
+
+      .contact-info {
+        text-align: left;
+        line-height: 1.5;
+        max-width: 300px;
+      }
+
+      .social-links {
+        text-align: center;
+      }
+
+      .social-links p {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+
+      .social-links ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .social-links li {
+        display: inline-block;
+        margin: 0 15px;
+      }
+
+      .social-links a {
+        color: #f1f1f1;
+        text-decoration: none;
+        font-size: 1.1rem;
+        transition: color 0.3s ease;
+      }
+
+      .social-links i {
+        color: #ff4d4d;
+        margin-right: 8px;
+        transition: transform 0.3s ease, color 0.3s ease;
+      }
+
+      .social-links a:hover i {
+        color: #e63946;
+        transform: scale(1.1);
+      }
+
+      #rights {
+        font-size: 1rem;
+        text-align: center;
+        padding-top: 15px;
+        margin-top: 20px;
+        border-top: 1px solid #666;
+        color: #bbb;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      {% comment %} {% include 'myApp/navbar.html' %} {% endcomment %}
+
+      <div class="hero-text">
+        <h1>Welcome to EasyHome!</h1>
+        <p>
+          Your go-to platform for reliable, professional home services. From
+          repairs to cleaning, EasyHome connects you with trusted providers to
+          make home maintenance simple and stress-free.
+        </p>
+        <button class="hero-btn">Explore Services</button>
+      </div>
+      <img
+        class="hero-img"
+        src="{% static 'electrician.jpg' %}"
+        alt="Repair Image"
+      />
+    </header>
+
+    <section class="about" id="about">
+      <img src="{% static 'repair.jpg' %}" alt="Repair Image" />
+      <div class="about-content">
+        <h2>About Us</h2>
+        <p>
+          EasyHome is your trusted platform for accessing a wide range of home
+          services, from plumbing and electrical repairs to cleaning and
+          painting. With our user-friendly platform, you can easily connect with
+          skilled, verified professionals who deliver quality, reliable service
+          when you need it. Designed with convenience in mind, EasyHome makes
+          home maintenance and repairs stress-free and dependable.
+        </p>
+        <button class="about-btn">Learn More</button>
+      </div>
+    </section>
+
+    <section class="why-choose-easyhome">
+      <h2>Why Choose EasyHome?</h2>
+      <div class="reasons">
+        <div class="reason">
+          <h3>Convenient</h3>
+          <p>
+            Choose from a variety of service providers with just a few clicks.
+          </p>
+        </div>
+        <div class="reason">
+          <h3>Reliable</h3>
+          <p>We only list experienced and trained professionals.</p>
+        </div>
+        <div class="reason">
+          <h3>Cost Effective</h3>
+          <p>We ensure a competitive price for all the services we list.</p>
+        </div>
+        <div class="reason">
+          <h3>Easy To Use</h3>
+          <p>Register. Choose your service and desired time schedule. DONE!</p>
+        </div>
+      </div>
+    </section>
+    <!-- Footer Section -->
+    <footer class="footer">
+      <div class="footerdiv">
+        <p class="contact-info" id="contact">
+          Tel: +977-9801088080 <br />
+          Email: info@easyhome.com
+        </p>
+        <div class="social-links">
+          <p>Follow us on:</p>
+          <ul>
+            <li>
+              <a href="https://www.facebook.com/" target="_blank">
+                <i class="fab fa-facebook fa-2x"></i>
+                <span>Facebook</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://www.instagram.com/" target="_blank">
+                <i class="fab fa-instagram fa-2x"></i>
+                <span>Instagram</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://www.google.com/" target="_blank">
+                <i class="fab fa-google fa-2x"></i>
+                <span>Google</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <p id="rights">&copy; 2024 EasyHome. All Rights Reserved.</p>
+    </footer>
+  </body>
+</html>

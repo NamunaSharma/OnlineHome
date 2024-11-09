@@ -1,8 +1,11 @@
 import math
-from django.shortcuts import render, redirect
+from pyexpat.errors import messages
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login
-from .forms import BookingForm, RegistrationForm, ServiceProviderForm, CustomerForm
-from .models import ServiceProvider, Customer,Service
+from .forms import BookingForm, RegistrationForm, ReviewForm, ServiceProviderForm, CustomerForm
+from .models import Booking, Category, ServiceProvider, Customer,Service
+from django.contrib import messages
 def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST,request.FILES)
@@ -53,7 +56,7 @@ def login_view(request):
                 return redirect('service_provider')  # Redirect to service provider page
             elif hasattr(user, 'customer'):
                 print("User is a customer")
-                return redirect('booking')  # Redirect to customer page
+                return redirect('customer')  # Redirect to customer page
             else:
                 print("User role not found")
                 return render(request, 'myApp/login.html', {'error': 'User role not found'})
@@ -63,92 +66,490 @@ def login_view(request):
     return render(request, 'myApp/login.html')
 
 def service_provider(request):
-    return render(request, 'myApp/service_provider.html')
+        provider_id = request.user.id
+    # Fetch the provider's information using the provider's ID
+        provider = ServiceProvider.objects.get(user_id=provider_id)
+
+        return render(request, 'myApp/serviceprofile.html', {'provider': provider})
 
 def customer(request):
     return render(request, 'myApp/customer.html')
 
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Service, ServiceProvider, Booking
 
-def create_booking(request):
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Service, ServiceProvider, Booking
+
+
+def cosine_similarity_manual(vec1, vec2):
+    return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+
+@login_required  # Ensure the user is logged in
+def create_booking(request, service_id=None):
+    service = None
+    recommendations = []  
+    if service_id:
+        service = get_object_or_404(Service, id=service_id)
+        recommendations = recommend_services(request, service.id)
+
+    elif 'service_id' in request.GET:
+        service_id = request.GET['service_id']
+        service = get_object_or_404(Service, id=service_id)
+        recommendations = recommend_services(request, service.id)
+
     if request.method == 'POST':
-        form = BookingForm(request.POST)
-        if form.is_valid():
-            booking = form.save(commit=False)
-            booking.customer = request.user.customer  # Associate with logged-in customer
-            booking.save()
-            return redirect('login')  # Redirect to a success page
-        else:
-            print("Service Provider Form Errors:", ServiceProviderForm.errors)
-            print(form.errors)  # Debug: print form errors
-    else:
-        form = BookingForm()
+        location = request.POST.get('location')  # Retrieve the location from the form
+        provider_id = request.POST.get('provider_id')  # Retrieve the provider ID from the form
+        booking_time = request.POST.get('booking_time')  # Retrieve the booking time from the form
 
-    return render(request, 'myApp/Booking.html', {'form': form})
+        print(f"Received provider ID: {provider_id}")  # Check that you're receiving the correct provider ID
+
+        # Find the service provider by ID
+        try:
+            provider = ServiceProvider.objects.get(id=provider_id)
+        except ServiceProvider.DoesNotExist:
+            provider = None  # Handle the case where no provider is found
+
+        # Ensure the user has a 'customer' instance
+        try:
+            customer = request.user.customer  # Assuming a OneToOne relationship between User and Customer
+        except AttributeError:
+            customer = None  # Handle the case where no customer is associated with the user
+
+        if customer and provider:
+            # Create and save the booking if both customer and provider are valid
+            booking = Booking.objects.create(
+                location=location,
+                booking_time=booking_time,
+                customer=customer,
+                provider=provider,
+                service=service,
+            )
+            booking.save()  # Save the booking to the database
+            return redirect('categories')  # Replace with actual URL name
+
+        else:
+            return redirect('customer')  # Handle this with a proper error page or message
+
+    else:
+        return render(request, 'myApp/Booking.html', {'service': service,'recommendations': recommendations })
 
 
 def services_view(request):
     services = Service.objects.all()  # Fetch all services from the database
     return render(request, 'MyApp/services.html', {'services': services})
 
+def provider_profile(request, provider_id):
+    provider = ServiceProvider.objects.get(user_id=provider_id)
+    
+    reviews = provider.reviews.all()
+    
+    # Calculate the average rating
+    if reviews.exists():
+        total_rating = sum([review.rating for review in reviews])
+        average_rating = total_rating / len(reviews)
+    else:
+        average_rating = 0  # Default to 0 if no reviews
 
+    # Calculate filled and empty stars
+    filled_stars = int(average_rating)
+    empty_stars = 5 - filled_stars
+
+    context = {
+        'provider': provider,
+        'reviews': reviews,
+        'average_rating': average_rating,
+        'filled_stars': range(filled_stars),
+        'empty_stars': range(empty_stars),
+    }
+
+    return render(request, 'myApp/serviceprofile.html', context)
 
 def customer_profile(request, user_id):
-    customer = Customer.objects.get(user__id=user_id)  # Fetch customer by user ID
-    return render(request, 'myApp/customerpro.html', {'customer': customer})
+    customer = Customer.objects.get(user__id=user_id)  
+    bookings = Booking.objects.filter(customer=customer)# Fetch customer by user ID
+    return render(request, 'myApp/customerpro.html', {'customer': customer,'bookings': bookings})
 
 
-
-
+def category_view(request):
+    categories = Category.objects.all()  # Fetch all services from the database
+    return render(request, 'MyApp/categories.html', {'categories': categories})
 
 #new
+import math
 
-def euclidean_distance(coord1, coord2):
+def haversine_distance(coord1, coord2):
     """
-    Calculate the Euclidean distance between two geographical points.
-
+    Calculate the Haversine distance between two geographical points.
+    
     :param coord1: Tuple (latitude1, longitude1)
     :param coord2: Tuple (latitude2, longitude2)
-    :return: Distance between the two points
+    :return: Distance between the two points in kilometers
     """
+    # Radius of the Earth in kilometers
+    R = 6371.0
+    
     lat1, lon1 = coord1
     lat2, lon2 = coord2
-    return math.sqrt((lat1 - lat2) ** 2 + (lon1 - lon2) ** 2)
-
-def find_nearest_service_providers(user_location, service_providers, k=3):
+    
+    # Convert latitude and longitude from degrees to radians
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    
+    # Differences in coordinates
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    
+    # Haversine formula
+    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    
+    # Distance in kilometers
+    distance = R * c
+    return distance
+def find_nearest_service_providers(user_location, service_providers, max_distance_km=50, k=3):
     """
-    Find the nearest service providers based on user location.
-
+    Find the nearest service providers based on user location using the Haversine formula.
+    
     :param user_location: Tuple (latitude, longitude)
     :param service_providers: List of service provider objects
+    :param max_distance_km: Maximum distance (in km) to consider a provider as "nearby"
     :param k: Number of nearest providers to return
-    :return: List of nearest service providers
+    :return: List of nearest service providers or a message if no providers are nearby
     """
     distances = []
 
     for provider in service_providers:
         provider_location = (provider.latitude, provider.longitude)
-        distance = euclidean_distance(user_location, provider_location)
-        distances.append((provider, distance))
-        print(f"Provider: {provider.user.username}, Location: {provider_location}, Distance: {distance}")
+        distance = haversine_distance(user_location, provider_location)
+        
+        # If the provider is within the max distance, add to the list
+        if distance <= max_distance_km:
+            distances.append((provider, distance))
+
+    # If no providers are found within the maximum distance
+    if not distances:
+        return None
 
     # Sort by distance and select the nearest k providers
     nearest_providers = sorted(distances, key=lambda x: x[1])[:k]
     return [provider for provider, distance in nearest_providers]
 
-def book_service(request):
+
+
+def get_nearby_providers(request):
+    lat = float(request.GET.get('lat'))
+    lon = float(request.GET.get('lng'))
+
+    # Get all service providers from the database
+    service_providers = ServiceProvider.objects.all()
+
+    # Find nearest providers using the haversine distance logic
+    nearest_providers = find_nearest_service_providers((lat, lon), service_providers)
+
+    if nearest_providers is None:
+        return JsonResponse({'providers': []})
+
+    # Create a list of dictionaries for the providers
+    providers = [
+        {
+            'id': provider.id,
+            'name': provider.user.username,
+            'profile_picture': provider.profile_picture.url,
+            'latitude': provider.latitude,
+            'longitude': provider.longitude
+        }
+        for provider in nearest_providers
+    ]
+    return JsonResponse({'providers': providers})
+
+
+    ##recommendation
+from .models import Service
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import MinMaxScaler
+import numpy as np
+import pandas as pd
+
+# def cosine_similarity_manual(v1, v2):
+#     dot_product = np.dot(v1, v2)
+#     norm_v1 = np.linalg.norm(v1)
+#     norm_v2 = np.linalg.norm(v2)
+#     return dot_product / (norm_v1 * norm_v2)
+
+def recommend_services(request, service_id):
+    # Fetch all services
+    services = Service.objects.all()
+    
+    # Extract relevant attributes for each service
+    data = pd.DataFrame({
+        'id': [service.id for service in services],
+        'description': [service.description for service in services],
+    })
+    
+    # Vectorize descriptions
+    vectorizer = TfidfVectorizer()
+    description_matrix = vectorizer.fit_transform(data['description'])
+    
+    # Combine features (you can include ratings or other features if needed)
+    combined_features = description_matrix.toarray()
+    
+    # Get the feature vector for the target service
+    service_idx = data[data['id'] == service_id].index[0]
+    target_vector = combined_features[service_idx]
+    
+    # Manually calculate cosine similarity with other services
+    similarity_scores = []
+    for i, vector in enumerate(combined_features):
+        if i != service_idx:  # skip the target service itself
+            similarity = cosine_similarity_manual(target_vector, vector)
+            similarity_scores.append((i, similarity))
+    
+    # Sort by similarity score, descending
+    similarity_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)[:5]
+    
+    # Fetch recommended service IDs
+    recommended_indices = [i[0] for i in similarity_scores]
+    recommended_services = Service.objects.filter(id__in=[data['id'][i] for i in recommended_indices])
+    
+    return recommended_services  # Return the recommended services directly
+
+
+def category_services(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    query = request.GET.get('search', '')
+    if query:
+        services = Service.objects.filter(
+            category=category,
+            title__icontains=query
+        )
+    else:
+        services = Service.objects.filter(category=category)
+    return render(request, 'MyApp/category_services.html', {
+        'category': category,
+        'services': services
+    })
+
+def booking(request, service_id=None):
+    service = None
+    if service_id:
+        service = get_object_or_404(Service, id=service_id)
+    elif 'service_id' in request.GET:
+        service_id = request.GET['service_id']
+        service = get_object_or_404(Service, id=service_id)
+    return render(request, 'myApp/Booking.html', {'service': service})
+
+
+
+@login_required
+def service_provider(request):
+    # Fetch the provider's information using the logged-in user's ID
+    provider_id = request.user.id
+    provider = get_object_or_404(ServiceProvider, user_id=provider_id)
+    
+    return render(request, 'myApp/service_provider.html', {'provider': provider})
+
+from django.db.models import Q
+
+@login_required
+def provider_bookings(request, provider_id):
+    provider = get_object_or_404(ServiceProvider, user_id=provider_id)
+    
+    # Ensure the logged-in user is the provider
+    if request.user != provider.user:
+        return redirect('login')
+    
+    # Get sorting order from URL parameters
+    sort_order = request.GET.get('sort', 'asc')
+    
+    # Get search and status filter parameters
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    
+    # Filter bookings based on search query and status
+    bookings = Booking.objects.filter(provider=provider)
+    
+    if search_query:
+        bookings = bookings.filter(
+            Q(service__title__icontains=search_query) | 
+            Q(customer__user__username__icontains=search_query)
+        )
+    
+    if status_filter:
+        bookings = bookings.filter(status=status_filter)
+    
+    if sort_order == 'desc':
+        bookings = bookings.order_by('-booking_time')
+    else:
+        bookings = bookings.order_by('booking_time')
+    
+    return render(request, 'myApp/provider_bookings.html', {
+        'provider': provider,
+        'bookings': bookings,
+        'sort_order': sort_order,
+        'search': search_query,
+        'status': status_filter,
+    })
+
+@login_required
+def confirm_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    # Ensure the logged-in user is the provider and the status is 'confirmed'
+    if request.user != booking.provider.user:
+        return redirect('login')
+
     if request.method == "POST":
-        # Get the user location from the form
-        location = request.POST.get('location')
-        lat, lng = map(float, location.split(','))  # Split and convert to float
+        if booking.status == "pending":
+            # Confirm the booking
+            booking.status = "confirmed"
+            booking.save()
+            messages.success(request, "Booking confirmed successfully.")
+        elif booking.status == "confirmed":
+            # Allow only the provider to mark the booking as completed
+            if booking.service_completed:
+                booking.status = "completed"
+                booking.save()
+                messages.success(request, "Booking marked as completed.")
+            else:
+                messages.error(request, "Please confirm that the service was provided before marking it as completed.")
+        else:
+            messages.error(request, "Invalid action.")
+
+    return render(request, 'myApp/provider_bookings.html', {
+        'bookings': Booking.objects.filter(provider=booking.provider),
+        'provider': booking.provider,
+        'sort_order': request.GET.get('sort', 'asc'),
+        'search': request.GET.get('search', ''),
+        'status': request.GET.get('status', '')
+    })
+
+
+# @login_required
+# def submit_review(request, provider_id):
+#     provider = get_object_or_404(ServiceProvider, id=provider_id)
+#     booking = Booking.objects.filter(customer=request.user.customer, provider=provider).last()
+    
+#     # Check if the service has been completed
+#     if booking and booking.status != 'completed':
+#         messages.error(request, "You can only leave a review after the service is completed.")
+#         return redirect('provider_profile', provider_id=provider.id)
+
+#     if request.method == 'POST':
+#         form = ReviewForm(request.POST)
+#         if form.is_valid():
+#             review = form.save(commit=False)
+#             review.customer = request.user.customer
+#             review.provider = provider
+#             review.booking = booking
+#             review.save()
+#             messages.success(request, "Review submitted successfully.")
+#             return redirect('provider_profile', provider_id=provider.id)
+#     else:
+#         form = ReviewForm()
+
+#     context = {
+#         'form': form,
+#         'provider': provider,
+#         'booking': booking,
+#     }
+#     return render(request, 'myApp/submit_review.html', context)
+@login_required
+def mark_service_completed(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    
+    # Ensure the logged-in user is the provider
+    if request.user != booking.provider.user:
+        return redirect('login')
+    
+    # Ensure the booking status is confirmed before marking it completed
+    if booking.status == "confirmed":
+        booking.status = "completed"
+        booking.service_completed = True
+        booking.needs_review = True
+        booking.save()
+        messages.success(request, "Service marked as completed.")
+        print(booking.status)
+    else:
+        messages.error(request, "Booking is not confirmed yet.")
+    
+    return render(request, 'myApp/provider_bookings.html', {
+        'bookings': Booking.objects.filter(provider=booking.provider),
+        'provider': booking.provider,
+        'sort_order': request.GET.get('sort', 'asc'),
+        'search': request.GET.get('search', ''),
+        'status': request.GET.get('status', '')
+    })
+
+
+@login_required
+def user_booking_list(request):
+    # Get the customer object for the current logged-in user
+    customer = Customer.objects.get(user=request.user)  # Assuming 'Customer' model has a ForeignKey to User
+
+    # Find the booking that needs a review
+    pending_review_booking = Booking.objects.filter(
+        customer=customer,  # Use customer instance, not user instance
+        status='completed',
+        needs_review=True
+    ).first()
+    
+
+    if pending_review_booking:
+     print(f"Redirecting to submit_review for booking {pending_review_booking.id}")
+     return redirect('submit_review', booking_id=pending_review_booking.id)
+    else:
+     print("No pending review booking found.")
+
+
+    # Render all bookings if no pending reviews
+    bookings = Booking.objects.filter(customer=customer)  # Use customer instance here as well
+    return render(request, 'myApp/customer.html', {'bookings': bookings})
+
+
+@login_required
+def submit_review(request, booking_id):
+    # Fetch the booking by booking_id
+    booking = get_object_or_404(Booking, id=booking_id)
+    
+    # Ensure the booking is completed and needs a review
+    if booking.status != 'completed' or not booking.needs_review:
+        messages.error(request, "This booking cannot be reviewed yet.")
+        return redirect('user_booking_list')
+    
+    # If the method is POST, process the review form
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
         
-        # Get all service providers from the database
-        service_providers = ServiceProvider.objects.all()
+        if form.is_valid():
+            # Create a new review without saving to DB yet
+            review = form.save(commit=False)
+            
+            # Assign the booking and provider to the review
+            review.booking = booking
+            review.provider = booking.provider
+            review.customer = request.user.customer  # Assuming the customer is linked to the user
+            
+            # Save the review to the database
+            review.save()
+            
+            # Mark the booking as reviewed
+            booking.needs_review = False
+            booking.save()
+            
+            # Show a success message and redirect to the provider profile
+            messages.success(request, "Review submitted successfully.")
+            # return redirect('provider_profile', provider_id=booking.provider.id)
+            return redirect('customer')
+    else:
+        form = ReviewForm()
 
-        # Find the nearest service providers
-        user_location = (lat, lng)
-        nearest_providers = find_nearest_service_providers(user_location, service_providers)
-
-        # Render the results
-        return render(request, 'MyApp/nearest_provider.html', {'nearest_providers': nearest_providers})
-
-    return render(request, 'myApp/booking_form.html')
+    # Context to pass to the template
+    context = {
+        'form': form,
+        'booking': booking,
+        'provider': booking.provider,  # Pass the provider object as well
+    }
+    
+    # Render the review submission template
+    return render(request, 'myApp/submit_review.html', context)

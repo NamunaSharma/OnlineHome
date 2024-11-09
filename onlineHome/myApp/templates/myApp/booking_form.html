@@ -3,42 +3,179 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Book Service</title>
+    <title>Book a Service</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
+      /* Basic page styling */
+      body {
+        font-family: "Arial", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+        color: #333;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+        font-size: 2.5rem;
+        margin: 20px 0;
+      }
+
+      /* Main container with Flexbox layout */
+      .main-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 50px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 10px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Left side: Form and map styling */
+      .location-form {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+      .label-input-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        max-width: 500px;
+      }
+      label {
+        font-size: 1.2rem;
+        color: #555;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      /* Map styling */
       #map {
-        height: 400px; /* Set the height of the map */
-        width: 100%; /* Set the width of the map */
+        height: 400px;
+        width: 100%;
+        border-radius: 10px;
+        margin-top: 15px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Right side: Provider list styling */
+      .provider-list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .provider-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #f1f1f1;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        width: 100%;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .provider-item p {
+        margin: 0;
+        color: #333;
+        font-size: 1rem;
+      }
+      .book-link {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+      .book-link:hover {
+        color: #0056b3;
       }
     </style>
   </head>
   <body>
     <h1>Book a Service</h1>
-    <!-- HTML Form to Capture User Location -->
-    <form method="POST" action="{% url 'nearest' %}">
-      {% csrf_token %}
-      <div class="label-input-container">
-        <label for="location">Location:</label>
-        <input
-          type="text"
-          id="location"
-          name="location"
-          placeholder="Latitude, Longitude"
-          required
-        />
-        <button type="button" onclick="getCurrentLocation()">
-          Use Current Location
-        </button>
+    <div class="main-container">
+      <!-- Left Side: Form and Map -->
+      <div class="location-form">
+        <form method="POST" action="{% url 'nearest' %}">
+          {% csrf_token %}
+          <div class="label-input-container">
+            <label for="location">Location:</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              placeholder="Latitude, Longitude"
+              required
+            />
+            <button type="button" onclick="getCurrentLocation()">
+              Use Current Location
+            </button>
+          </div>
+          <div id="map"></div>
+          <button type="submit">Find Nearest Service Providers</button>
+        </form>
       </div>
-      <div id="map"></div>
-      <!-- Map Container -->
-      <button type="submit">Find Nearest Service Providers</button>
-    </form>
 
+      <!-- Right Side: Display nearest service providers -->
+      <div class="provider-list">
+        <h2>Nearest Service Providers</h2>
+        {% for provider in nearest_providers %}
+        <div class="provider-item">
+          <img
+            src="{{ provider.profile_picture.url }}"
+            alt="{{ service.title }}"
+            style="
+              width: 100px;
+              height: 100px;
+              border-radius: 50px;
+              margin-right: 15px;
+            "
+          />
+          <p>
+            {{ provider.user.username }} - {{ provider.service_type }} <br />
+            Contact: {{ provider.phone_number }}
+          </p>
+          <a href="{% url 'booking' provider.id  %}" class="book-link"
+            >Book Now</a
+          >
+        </div>
+        {% empty %}
+        <p>No service providers available in this area.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Leaflet.js for Map -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
       // Initialize map
-      const map = L.map("map").setView([27.7, 85.32], 13); // Set initial view to a central point (adjust as needed)
+      const map = L.map("map").setView([27.7, 85.32], 13); // Set initial view to a central point
 
       // Add OpenStreetMap tile layer
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {

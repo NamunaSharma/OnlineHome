@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recommended Services</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Recommended Services</h1>
+
+      {% if recommended_services %}
+      <div class="recommendations">
+        {% for service in recommended_services %}
+        <div class="service-card">
+          <h2>{{ service.title}}</h2>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p>No recommendations available at this time.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>

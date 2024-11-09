@@ -1,16 +1,293 @@
-<!-- create_booking.html -->
+{% include 'myApp/navbar.html' %} {% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Booking</title>
+    <title>Booking Form</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css"
+    />
+    <style>
+      /* Custom Styles */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+      .booking-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+      }
+      .service-details {
+        margin-right: 40px;
+      }
+      .service-details img {
+        border-radius: 5%;
+      }
+      .formdiv {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .formdiv input[type="text"],
+      .formdiv input[type="datetime-local"] {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+      .formdiv button {
+        width: 100%;
+        padding: 10px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+      .formdiv button:hover {
+        background-color: #45a049;
+      }
+      #map {
+        height: 300px;
+        width: 100%;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .provider-list {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .provider-item {
+        background-color: #fff;
+        margin: 10px;
+        padding: 15px;
+        border-radius: 5px;
+        width: 180px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+      .provider-item:hover {
+        transform: scale(1.05);
+      }
+      .provider-item img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Create a Booking</h1>
-    <form method="POST">
-      {% csrf_token %} {{ form.as_p }}
-      <button type="submit">Book Service</button>
-    </form>
+    <div class="booking-container">
+      <div class="service-details">
+        <img
+          src="{{ service.image }}"
+          alt="{{ service.title }}"
+          height="400px"
+          width="600px"
+        />
+        <h2>{{ service.title }}</h2>
+        <p>{{ service.description }}</p>
+        <h1>Recommended Services</h1>
+        {% if recommendations %}
+        <div class="recommendations">
+          {% for service in recommendations %}
+          <div class="service-card">
+            <h2>{{ service.title }}</h2>
+            <p>{{ service.description }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p>No recommendations available at this time.</p>
+        {% endif %}
+      </div>
+
+      <div class="formdiv">
+        <form method="POST" action="{% url 'booking' service_id=service.id %}">
+          {% csrf_token %}
+          <p class="price">Price: ${{ service.price }}</p>
+
+          <label for="location">Location:</label>
+          <input
+            type="text"
+            id="location"
+            name="location"
+            placeholder="Enter a location name (e.g., Kathmandu)"
+          />
+
+          <div style="display: flex; justify-content: space-between">
+            <button type="button" onclick="getLocationAndProviders()">
+              Search Providers
+            </button>
+          </div>
+
+          <div id="map"></div>
+
+          <label for="provider">Search Provider:</label>
+          <input type="hidden" id="id_provider" name="provider_id" />
+          <!-- Hidden provider ID -->
+          <input type="text" id="provider_name" readonly />
+          <!-- Display provider name -->
+
+          <label for="booking_time">Booking Time:</label>
+          <input
+            type="datetime-local"
+            id="booking_time"
+            name="booking_time"
+            value="{{ current_time|date:'Y-m-d\TH:i' }}"
+          />
+
+          <input
+            type="hidden"
+            name="customer_name"
+            value="{{ customer.user.username }}"
+          />
+          <input type="hidden" name="email" value="{{ customer.user.email }}" />
+          <input
+            type="hidden"
+            name="phonenumber"
+            value="{{ customer.phone_number }}"
+          />
+
+          <button type="submit" style="width: 100%">Book Service</button>
+        </form>
+      </div>
+
+      <!-- Service Providers List -->
+      <div class="provider-list" id="provider-list"></div>
+    </div>
+    <div class="bookings-list">
+      {% for booking in bookings %}
+      <div class="booking-card">
+        <div class="booking-header">
+          <h3>Booking ID: {{ booking.id }}</h3>
+          <span class="status {{ booking.status|lower }}"
+            >{{ booking.status }}</span
+          >
+        </div>
+        <p><strong>Service:</strong> {{ booking.service.title }}</p>
+        <p><strong>Location:</strong> {{ booking.location }}</p>
+        <p><strong>Booking Time:</strong> {{ booking.booking_time }}</p>
+        <p><strong>Customer:</strong> {{ booking.customer.user.username }}</p>
+
+        <!-- Review Form for Completed Bookings -->
+        {% if booking.status == 'completed' %}
+        <h4>Submit a Review</h4>
+        <form
+          method="post"
+          action="{% url 'submit_review' provider_id=booking.provider.id %}"
+        >
+          {% csrf_token %} {{ form.as_p }}
+          <button type="submit" class="btn">Submit Review</button>
+        </form>
+        {% else %}
+        <p>Review button not visible because status is {{ booking.status }}</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script>
+      const map = L.map("map").setView([27.7172, 85.324], 13); // Default to Kathmandu
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap",
+      }).addTo(map);
+
+      // Function to get location coordinates based on the input name and fetch service providers
+      function getLocationAndProviders() {
+        const locationName = document.getElementById("location").value;
+        if (locationName) {
+          // Geocoding API to get lat/lng from location name
+          fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+              locationName
+            )}`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              if (data && data.length > 0) {
+                const lat = data[0].lat;
+                const lon = data[0].lon;
+                const latLng = [lat, lon];
+
+                // Set map view to the new location
+                map.setView(latLng, 13);
+
+                // Add marker for the selected location
+                L.marker(latLng).addTo(map).bindPopup(locationName).openPopup();
+
+                // Update location input with the formatted name
+                document.getElementById("location").value = locationName;
+
+                // Fetch nearby providers based on the geocoded coordinates
+                getNearbyProviders(lat, lon);
+              } else {
+                alert("Location not found. Please try again.");
+              }
+            })
+            .catch((err) => {
+              alert("Error fetching location: " + err);
+            });
+        } else {
+          alert("Please enter a location.");
+        }
+      }
+
+      // Fetch nearby service providers based on lat/lng
+      // Fetch nearby service providers based on lat/lng
+      function getNearbyProviders(lat, lon) {
+        fetch(`/get_nearby_providers?lat=${lat}&lng=${lon}`)
+          .then((response) => response.json())
+          .then((data) => {
+            const providerList = document.getElementById("provider-list");
+            providerList.innerHTML = ""; // Clear previous provider list
+
+            if (data.providers.length === 0) {
+              providerList.innerHTML =
+                "<p>No service providers available in this area.</p>";
+            } else {
+              // Populate the provider list based on the fetched data
+              data.providers.forEach((provider) => {
+                const providerElement = document.createElement("div");
+                providerElement.className = "provider-item";
+                providerElement.innerHTML = `
+            <img src="${provider.profile_picture}" alt="${provider.name}" />
+            <p>${provider.name}</p>
+          `;
+
+                providerElement.addEventListener("click", function () {
+                  console.log("Provider ID:", provider.id); // Debugging line
+
+                  // Set provider ID to hidden input
+                  document.getElementById("id_provider").value = provider.id;
+
+                  // Set provider name to provider_name input
+                  document.getElementById("provider_name").value =
+                    provider.name; // This is fine
+                });
+
+                providerList.appendChild(providerElement);
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching providers:", error);
+          });
+      }
+    </script>
   </body>
 </html>

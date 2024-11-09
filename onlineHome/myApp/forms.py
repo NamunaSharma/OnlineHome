@@ -1,7 +1,7 @@
 # In myApp/forms.py
 from django import forms
 from django.contrib.auth.models import User
-from .models import ServiceProvider, Customer,Booking
+from .models import ServiceProvider, Customer,Booking,Review
 
 
 class RegistrationForm(forms.ModelForm):
@@ -25,4 +25,13 @@ class CustomerForm(forms.ModelForm):
 class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking
-        fields = ['name', 'email', 'phone_number', 'location','booking_time']
+        fields = ['location','booking_time']
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.NumberInput(attrs={'min': 1, 'max': 5}),
+            'comment': forms.Textarea(attrs={'rows': 4}),
+        }

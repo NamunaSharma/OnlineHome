@@ -1,0 +1,418 @@
+{% comment %} {% include 'myApp/service_pronav.html' %} 
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bookings for {{ provider.user.username }}</title>
+    <style>
+      /* General Styling */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f3f4f6;
+        color: #333;
+        min-height: 100vh;
+      }
+
+      .container {
+        margin-top: 15%;
+        max-width: 800px;
+        width: 90%;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+
+      h2 {
+        color: #2c3e50;
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .sort-button {
+        text-align: right;
+        margin-bottom: 15px;
+      }
+
+      .bookings-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .booking-card {
+        background-color: #ecf0f1;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+      }
+
+      .booking-card:hover {
+        transform: translateY(-4px);
+      }
+
+      .booking-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .booking-header h3 {
+        color: #34495e;
+        font-size: 18px;
+      }
+
+      .status {
+        padding: 5px 10px;
+        font-size: 14px;
+        color: #ffffff;
+        border-radius: 12px;
+        text-transform: capitalize;
+      }
+
+      .status.pending {
+        background-color: #f39c12;
+      }
+
+      .status.confirmed {
+        background-color: #27ae60;
+      }
+
+      .status.completed {
+        background-color: #2980b9;
+      }
+
+      .status.canceled {
+        background-color: #e74c3c;
+      }
+
+      p {
+        font-size: 16px;
+        margin: 5px 0;
+      }
+
+      strong {
+        color: #34495e;
+      }
+
+      .no-bookings {
+        color: #7f8c8d;
+        text-align: center;
+        font-size: 18px;
+        margin-top: 20px;
+      }
+
+      /* Search Bar and Filters */
+      .search-bar, .filters {
+        margin-bottom: 20px;
+      }
+
+      .search-bar input, .filters select {
+        padding: 8px;
+        width: 80%;
+        margin-right: 10px;
+      }
+
+      .filters select {
+        width: 85%;
+      }
+
+      .filters button, .search-bar button {
+        padding: 8px 15px;
+        cursor: pointer;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Bookings for {{ provider.user.username }}</h2>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <form method="GET" action="">
+          <input type="text" name="search" placeholder="Search by Service or Customer" value="{{ request.GET.search }}" />
+          <button type="submit">Search</button>
+        </form>
+      </div>
+
+      <!-- Filter by Status -->
+      <div class="filters">
+        <form method="GET" action="">
+          <label for="status">Filter by Status:</label>
+          <select name="status" id="status">
+            <option value="">All</option>
+            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+            <option value="canceled" {% if request.GET.status == 'canceled' %}selected{% endif %}>Canceled</option>
+          </select>
+          <button type="submit">Filter</button>
+        </form>
+      </div>
+
+      <!-- Sort Button -->
+      <div class="sort-button">
+        {% if sort_order == 'asc' %}
+          <a href="?sort=desc&search={{ request.GET.search }}&status={{ request.GET.status }}" class="btn">Sort by Newest</a>
+        {% else %}
+          <a href="?sort=asc&search={{ request.GET.search }}&status={{ request.GET.status }}" class="btn">Sort by Oldest</a>
+        {% endif %}
+      </div>
+
+      {% if bookings %}
+        <div class="bookings-list">
+          {% for booking in bookings %}
+            <div class="booking-card">
+              <div class="booking-header">
+                <h3>Booking ID: {{ booking.id }}</h3>
+                <span class="status {{ booking.status|lower }}">{{ booking.status }}</span>
+              </div>
+              <p><strong>Service:</strong> {{ booking.service.title }}</p>
+              <p><strong>Location:</strong> {{ booking.location }}</p>
+              <p><strong>Booking Time:</strong> {{ booking.booking_time }}</p>
+              <p><strong>Customer:</strong> {{ booking.customer.user.username }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="no-bookings">No bookings found for this provider.</p>
+      {% endif %}
+    </div>
+  </body>
+</html> {% endcomment %}
+{% include 'myApp/service_pronav.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bookings for {{ provider.user.username }}</title>
+    <style>
+      /* General Styling */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f3f4f6;
+        color: #333;
+        min-height: 100vh;
+      }
+
+      .container {
+        margin-top: 15%;
+        max-width: 800px;
+        width: 90%;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+
+      h2 {
+        color: #2c3e50;
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .sort-button {
+        text-align: right;
+        margin-bottom: 15px;
+      }
+
+      .bookings-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .booking-card {
+        background-color: #ecf0f1;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+      }
+
+      .booking-card:hover {
+        transform: translateY(-4px);
+      }
+
+      .booking-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .booking-header h3 {
+        color: #34495e;
+        font-size: 18px;
+      }
+
+      .status {
+        padding: 5px 10px;
+        font-size: 14px;
+        color: #ffffff;
+        border-radius: 12px;
+        text-transform: capitalize;
+      }
+
+      .status.pending {
+        background-color: #f39c12;
+      }
+
+      .status.confirmed {
+        background-color: #27ae60;
+      }
+
+      .status.completed {
+        background-color: #2980b9;
+      }
+
+      .status.canceled {
+        background-color: #e74c3c;
+      }
+
+      p {
+        font-size: 16px;
+        margin: 5px 0;
+      }
+
+      strong {
+        color: #34495e;
+      }
+
+      .no-bookings {
+        color: #7f8c8d;
+        text-align: center;
+        font-size: 18px;
+        margin-top: 20px;
+      }
+
+      /* Search Bar and Filters */
+      .search-bar, .filters {
+        margin-bottom: 20px;
+      }
+
+      .search-bar input, .filters select {
+        padding: 8px;
+        width: 80%;
+        margin-right: 10px;
+      }
+
+      .filters select {
+        width: 85%;
+      }
+
+      .filters button, .search-bar button {
+        padding: 8px 15px;
+        cursor: pointer;
+      }
+
+      /* Confirm Button Styling */
+      .confirm-button {
+        padding: 8px 15px;
+        background-color: #27ae60;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      .confirm-button:hover {
+        background-color: #2ecc71;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Bookings for {{ provider.user.username }}</h2>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <form method="GET" action="">
+          <input type="text" name="search" placeholder="Search by Service or Customer" value="{{ request.GET.search }}" />
+          <button type="submit">Search</button>
+        </form>
+      </div>
+
+      <!-- Filter by Status -->
+      <div class="filters">
+        <form method="GET" action="">
+          <label for="status">Filter by Status:</label>
+          <select name="status" id="status">
+            <option value="">All</option>
+            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+            <option value="canceled" {% if request.GET.status == 'canceled' %}selected{% endif %}>Canceled</option>
+          </select>
+          <button type="submit">Filter</button>
+        </form>
+      </div>
+
+      <!-- Sort Button -->
+      <div class="sort-button">
+        {% if sort_order == 'asc' %}
+          <a href="?sort=desc&search={{ request.GET.search }}&status={{ request.GET.status }}" class="btn">Sort by Newest</a>
+        {% else %}
+          <a href="?sort=asc&search={{ request.GET.search }}&status={{ request.GET.status }}" class="btn">Sort by Oldest</a>
+        {% endif %}
+      </div>
+
+      {% if bookings %}
+        <div class="bookings-list">
+          {% for booking in bookings %}
+            <div class="booking-card">
+              <div class="booking-header">
+                <h3>Booking ID: {{ booking.id }}</h3>
+                <span class="status {{ booking.status|lower }}">{{ booking.status }}</span>
+              </div>
+              <p><strong>Service:</strong> {{ booking.service.title }}</p>
+              <p><strong>Location:</strong> {{ booking.location }}</p>
+              <p><strong>Booking Time:</strong> {{ booking.booking_time }}</p>
+              <p><strong>Customer:</strong> {{ booking.customer.user.username }}</p>
+
+              <!-- Show Confirm Button Only If Status is Pending -->
+              {% if booking.status == "pending" %}
+                <form method="POST" action="{% url 'confirm_booking' booking.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="confirm-button">Confirm Booking</button>
+                </form>
+              {% endif %}
+              {% if booking.status == "confirmed" %}
+  <form method="POST" action="{% url 'mark_service_completed' booking.id %}">
+    {% csrf_token %}
+    <button type="submit" class="confirm-button">Mark as Completed</button>
+  </form>
+{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        
+      {% else %}
+        <p class="no-bookings">No bookings found for this provider.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>

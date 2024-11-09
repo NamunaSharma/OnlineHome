@@ -1,2 +1,221 @@
-{% load static %}
-service provider
+{% include 'myApp/service_pronav.html' %} {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Service Provider Homepage</title>
+    <style>
+      /* General Styles */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f0f2f5;
+        color: #333;
+      }
+
+      /* Header Section */
+      .header {
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+          url("https://unsplash.com/s/photos/image") no-repeat center
+            center/cover;
+        height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        text-align: center;
+      }
+
+      .header-overlay {
+        padding: 20px;
+      }
+
+      .header h1 {
+        font-size: 3rem;
+        font-weight: bold;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        margin: 20px 0;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 10px 18px;
+        background-color: #ff6363;
+        color: #fff;
+        border-radius: 25px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+      }
+
+      .btn:hover {
+        background-color: #ff3d3d;
+      }
+
+      /* About Section */
+      .about-section {
+        padding: 40px;
+        text-align: center;
+      }
+
+      .about-section h2 {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: #333;
+      }
+
+      .about-section p {
+        font-size: 1rem;
+        max-width: 600px;
+        margin: 0 auto;
+        color: #555;
+      }
+
+      /* Services Section */
+      .services-section {
+        padding: 40px;
+        background-color: #fff;
+        text-align: center;
+      }
+
+      .services-section h2 {
+        font-size: 2.5rem;
+        color: #333;
+      }
+
+      .service-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 30px;
+      }
+
+      .service-card {
+        background-color: #ffeded;
+        border-radius: 8px;
+        padding: 20px;
+        width: 300px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .service-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      .service-card h3 {
+        font-size: 1.3rem;
+        color: #ff6363;
+      }
+
+      .service-card p {
+        color: #555;
+        font-size: 0.9rem;
+        margin: 10px 0;
+      }
+
+      /* Reviews Section */
+      .reviews-section {
+        padding: 40px;
+        background-color: #f9f9f9;
+        text-align: center;
+      }
+
+      .reviews-section h2 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .reviews-carousel {
+        display: flex;
+        overflow-x: auto;
+        gap: 20px;
+        padding: 10px;
+      }
+
+      .review {
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        min-width: 250px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .review p {
+        font-size: 0.9rem;
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      /* Footer */
+      .footer {
+        padding: 15px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+      }
+
+      .footer p {
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body id="home">
+    <header class="header">
+      <div class="header-overlay">
+        <h1>Welcome, {{ provider.user.username }}</h1>
+        <p>Your trusted partner in delivering exceptional services</p>
+        <a href="#services" class="btn">View Services</a>
+      </div>
+    </header>
+
+    <section id="about" class="about-section">
+      <h2>About Us</h2>
+      <p>
+        Dedicated to quality and customer satisfaction, we provide services that
+        you can trust. Our team strives to deliver the best experience for all
+        your needs.
+      </p>
+    </section>
+
+    <section id="services" class="services-section">
+      <h2>Our Services</h2>
+      <div class="service-cards">
+        {% for service in provider.services %}
+        <div class="service-card">
+          <h3>{{ service.title }}</h3>
+          <p>{{ service.description }}</p>
+          <a href="{% url 'book_service' service.id %}" class="btn">Book Now</a>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section id="reviews" class="reviews-section">
+      <h2>Customer Reviews</h2>
+      <div class="reviews-carousel">
+        {% for review in provider.reviews.all %}
+        <div class="review">
+          <p>"{{ review.content }}"</p>
+          <strong>- {{ review.customer.user.username }}</strong>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>&copy; {{ provider.user.username }} Services | All rights reserved</p>
+    </footer>
+  </body>
+</html>

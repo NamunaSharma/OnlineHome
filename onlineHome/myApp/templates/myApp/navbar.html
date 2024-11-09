@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Navbar</title>
+    <style>
+      /* Navbar Style */
+      .navbar {
+        background: rgb(164, 156, 156);
+        background: linear-gradient(
+          0deg,
+          rgba(164, 156, 156, 0.7299370431766457) 36%,
+          rgba(58, 91, 92, 0.6150911048012955) 100%
+        );
+        padding: 10px 0;
+      }
+
+      /* Flex container for navbar */
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* Ensures space between logo and links */
+        max-width: 1200px; /* Optional, for better width control */
+        margin: 0 auto; /* Centers the navbar */
+      }
+
+      /* Logo styling */
+      #logo {
+        height: 80px;
+        width: 80px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+      }
+
+      #logo:hover {
+        transform: rotate(360deg); /* Simple rotate animation on hover */
+      }
+
+      /* Navbar links container */
+      .navbar-links {
+        display: flex;
+        align-items: center;
+      }
+
+      /* Navbar links styling */
+      .navbar a {
+        color: #333; /* Darker text color for contrast */
+        text-decoration: none;
+        margin: 0 15px;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .navbar a:hover {
+        color: #ff4d4d; /* Slightly contrasting color on hover for visibility */
+      }
+
+      /* Adding a subtle underline effect to enhance hover state */
+      .navbar a::after {
+        content: "";
+        display: block;
+        width: 0;
+        height: 2px;
+        background: #8e735b; /* Muted goldish color for underline */
+        transition: width 0.3s;
+      }
+
+      .navbar a:hover::after {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar content -->
+    <div class="navbar">
+      <nav>
+        <img src="{% static 'Design.png' %}" id="logo" alt="Logo" />
+        <div class="navbar-links">
+          <a href="#home">Home</a>
+          <a href="#about">About Us</a>
+          <a href="{% url 'categories' %}">Categories</a>
+          <a href="{% url 'customer_profile' user_id=request.user.id %}"
+            >Account</a
+          >
+          <a href="#contact">Contact</a>
+        </div>
+      </nav>
+    </div>
+  </body>
+</html>

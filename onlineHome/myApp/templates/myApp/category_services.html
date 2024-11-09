@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ category.name }} Services</title>
+    <style>
+      /* General body styling */
+      body {
+        font-family: "Arial", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+
+      /* Header styling */
+      h1 {
+        text-align: center;
+        font-size: 3rem;
+        color: #fff;
+        margin-top: 50px;
+        background: linear-gradient(to left, #ff6a00, #ee0979);
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+
+      h2 {
+        font-size: 2rem;
+        color: #34495e;
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      /* Container for the services */
+      .services-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 30px auto;
+        padding: 0 20px;
+      }
+
+      /* Individual service item */
+      .service-item {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        margin: 20px;
+        padding: 20px;
+        text-align: center;
+        width: 280px;
+        transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .service-item:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        background-color: #f4f7fb;
+      }
+
+      .service-item img {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        margin-top: 15px;
+        transition: transform 0.3s;
+      }
+
+      .service-item:hover img {
+        transform: scale(1.05);
+      }
+
+      .service-item h2 {
+        margin-bottom: 15px;
+        color: #2c3e50;
+        font-size: 1.5rem;
+      }
+
+      .service-item p {
+        font-size: 1rem;
+        color: #7f8c8d;
+        margin-bottom: 20px;
+        height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Book Now button styling */
+      .book-now-btn {
+        display: inline-block;
+        background: linear-gradient(
+          90deg,
+          rgba(181, 40, 197, 1) 0%,
+          rgba(122, 54, 186, 1) 37%,
+          rgba(11, 140, 167, 1) 100%
+        );
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: background 0.4s ease, transform 0.3s;
+        text-decoration: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .book-now-btn:hover {
+        background: linear-gradient(45deg, #ee0979, #ff6a00);
+        transform: scale(1.05);
+      }
+
+      /* Empty message styling */
+      .empty-message {
+        text-align: center;
+        font-size: 1.5rem;
+        color: #e74c3c;
+        margin-top: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to Our Services</h1>
+    <h2>Services for {{ category.name }}</h2>
+    <div style="text-align: center; margin-bottom: 20px">
+      <input
+        type="text"
+        id="search"
+        placeholder="Search services..."
+        style="
+          padding: 10px;
+          width: 50%;
+          font-size: 1rem;
+          border-radius: 25px;
+          border: 1px solid #ddd;
+        "
+      />
+    </div>
+
+    <div class="services-container">
+      {% for service in services %}
+      <div
+        class="service-item"
+        data-title="{{ service.title|lower }}"
+        data-description="{{ service.description|lower }}"
+      >
+        <h2>{{ service.title }}</h2>
+
+        <img src="{{ service.image }}" alt="{{ service.title }}" />
+        <p>{{ service.description }}</p>
+        <a href="{% url 'booking' service.id %}" class="book-now-btn"
+          >Book Now</a
+        >
+      </div>
+      {% empty %}
+      <p class="empty-message">No services available for this category.</p>
+      {% endfor %}
+    </div>
+
+    <script>
+      const searchInput = document.getElementById("search");
+      const servicesContainer =
+        document.getElementsByClassName("services-container")[0];
+
+      searchInput.addEventListener("input", function () {
+        const query = searchInput.value.toLowerCase();
+        const services =
+          servicesContainer.getElementsByClassName("service-item");
+
+        Array.from(services).forEach((service) => {
+          const title = service.getAttribute("data-title");
+          const description = service.getAttribute("data-description");
+
+          if (title.includes(query) || description.includes(query)) {
+            service.style.display = "block";
+          } else {
+            service.style.display = "none";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

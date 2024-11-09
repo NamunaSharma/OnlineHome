@@ -1,0 +1,74 @@
+{% include 'myApp/navbar.html' %} {% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Services</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #fff;
+      }
+
+      h1 {
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Three columns per row */
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .category-item {
+        text-align: center;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .category-item img {
+        width: 100%;
+        max-width: 200px;
+        height: auto;
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
+
+      .category-name {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Our Categories</h1>
+
+    <div class="container">
+      {% for category in categories %}
+      <a href="{% url 'category_services' category.id %}" class="category-link">
+        <div class="category-item">
+          <img src="{{ category.image.url }}" alt="{{ category.name }}" />
+          <div class="category-name">{{ category.name }}</div>
+        </div>
+      </a>
+      {% empty %}
+      <p>No categories available.</p>
+      {% endfor %}
+    </div>
+  </body>
+</html>

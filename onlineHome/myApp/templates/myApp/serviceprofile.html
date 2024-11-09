@@ -1,0 +1,153 @@
+{% include 'myApp/service_pronav.html' %} {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Service Provider Profile</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <style>
+      /* Basic reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        line-height: 1.6;
+      }
+
+      /* Profile container */
+      .profile-container {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      /* Heading styles */
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #2c3e50;
+      }
+
+      /* Profile image */
+      img {
+        max-width: 150px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+        border: 4px solid #3498db;
+      }
+
+      /* Rating stars */
+      .stars {
+        color: gold;
+        font-size: 1.5rem;
+        margin: 5px 0;
+      }
+
+      .stars:hover {
+        cursor: pointer;
+      }
+
+      /* Review section */
+      h2 {
+        font-size: 1.5rem;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        color: #34495e;
+      }
+
+      ul {
+        list-style-type: none;
+        padding-left: 0;
+      }
+
+      li {
+        background-color: #ecf0f1;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 10px 0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      li p {
+        font-size: 1rem;
+        color: #7f8c8d;
+      }
+
+      li small {
+        font-size: 0.8rem;
+        color: #95a5a6;
+      }
+
+      /* No reviews message */
+      .no-reviews {
+        font-size: 1.2rem;
+        color: #e74c3c;
+        margin-top: 20px;
+      }
+
+      /* Optional: Button for any action */
+      .btn {
+        padding: 10px 20px;
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        margin-top: 20px;
+      }
+
+      .btn:hover {
+        background-color: #2980b9;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Profile container -->
+    <div class="profile-container">
+      <h1>{{ provider.user.username }}'s Profile</h1>
+      <img src="{{ provider.profile_picture.url }}" alt="Profile Picture" />
+
+      <p>
+        <strong>Average Rating:</strong>
+        {% for star in filled_stars %}
+        <span class="stars">★</span>
+        <!-- Filled star -->
+        {% endfor %} {% for star in empty_stars %}
+        <span class="stars">☆</span>
+        <!-- Empty star -->
+        {% endfor %}
+      </p>
+
+      <h2>Reviews</h2>
+      {% if reviews %}
+      <ul>
+        {% for review in reviews %}
+        <li>
+          <strong>{{ review.customer.user.username }}:</strong>
+          <p>Rating: {{ review.rating }}/5</p>
+          <p>{{ review.comment }}</p>
+          <p><small>Submitted on: {{ review.created_at }}</small></p>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="no-reviews">No reviews yet.</p>
+      {% endif %}
+
+      <!-- Optional: Action button (e.g., contact, book service, etc.) -->
+      <a href="#" class="btn">Contact Provider</a>
+    </div>
+  </body>
+</html>
