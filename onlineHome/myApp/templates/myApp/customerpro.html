@@ -24,14 +24,12 @@
       /* Profile Container */
       .profile-container {
         width: 100%;
-        {% comment %} height: 100vh; {% endcomment %}
         background: rgb(72, 97, 106);
         background: linear-gradient(
           0deg,
           rgba(72, 97, 106, 0.7327381636248249) 36%,
           rgba(146, 137, 137, 0.6038866230085784) 100%
         );
-        {% comment %} padding: 40px 20px; {% endcomment %}
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
@@ -40,7 +38,7 @@
 
       /* Profile Header */
       .profile-header {
-        margin-top:5%;
+        margin-top: 5%;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -152,6 +150,7 @@
         text-align: center;
         color: #333;
       }
+
       .table {
         width: 100%;
         border-collapse: collapse;
@@ -198,7 +197,6 @@
         font-size: 0.9rem;
       }
 
-
       /* Responsive Design */
       @media (max-width: 768px) {
         .profile-header {
@@ -241,9 +239,9 @@
       <!-- Profile Header -->
       <div class="profile-header">
         <div class="info">
-          <h2 class="username">Name: {{customer.user.username}}</h2>
-          <p class="email">Email: {{customer.user.email}}</p>
-          <p class="phone">Phone: {{customer.phone_number}}</p>
+          <h2 class="username">Name: {{ customer.user.username }}</h2>
+          <p class="email">Email: {{ customer.user.email }}</p>
+          <p class="phone">Phone: {{ customer.phone_number }}</p>
         </div>
 
         <div class="profile-picture">
@@ -258,6 +256,7 @@
           {% endif %}
         </div>
       </div>
+
       {% block content %}
       <h2>Your Bookings</h2>
 
@@ -280,26 +279,24 @@
             <td>{{ booking.status }}</td>
             <td>{{ booking.booking_time }}</td>
             <td>
-              {% if booking.status == "completed" and booking.needs_review %}
-              <!-- Submit Review button if review is needed -->
-              <a
-                href="{% url 'submit_review' booking.id %}"
-                class="btn btn-primary"
-                >Submit Review</a
-              >
-              {% elif booking.status == "completed" and not booking.needs_review
-              %}
-              <!-- Message when review is already submitted -->
-              <span class="text-muted">Review Submitted</span>
+              {% if booking.status == "completed" %}
+                  {% if booking.needs_review %}
+                      <!-- Submit Review button if review is needed -->
+                      <a href="{% url 'submit_review' booking.id %}" class="btn btn-primary">Submit Review</a>
+                  {% else %}
+                      <!-- Message when review is already submitted -->
+                      <span class="text-muted">Review Submitted</span>
+                  {% endif %}
               {% else %}
-              <!-- Button to submit review if booking is still pending -->
-              <a
-                href="{% url 'submit_review' booking.id %}"
-                class="btn btn-primary"
-                >Submit Review</a
-              >
+                  {% if booking.status == "pending" %}
+                      <!-- Button for pending bookings if review is allowed -->
+                      <a href="{% url 'submit_review' booking.id %}" class="btn btn-primary">Submit Review</a>
+                  {% else %}
+                      <span class="text-muted">No action required</span>
+                  {% endif %}
               {% endif %}
-            </td>
+          </td>
+          
           </tr>
           {% endfor %}
         </tbody>

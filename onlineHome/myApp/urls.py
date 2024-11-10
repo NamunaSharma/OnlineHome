@@ -1,6 +1,6 @@
 from . import views
 from django.urls import path
-from .views import register, login_view,create_booking,services_view,recommend_services,provider_bookings,submit_review,mark_service_completed
+from .views import register, login_view,create_booking,services_view,recommend_services,provider_bookings,submit_review,mark_service_completed,check_provider_availability
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -30,7 +30,8 @@ urlpatterns = [
     path('mark_service_completed/<int:booking_id>/', views.mark_service_completed, name='mark_service_completed'),
     path('user/bookings/', views.user_booking_list, name='user_booking_list'),
    #  path('booking/<int:booking_id>/review/', views.submit_review, name='submit_review'),
-   path('submit-review/<int:booking_id>/', views.submit_review, name='submit_review')
+   path('submit-review/<int:booking_id>/', views.submit_review, name='submit_review'),
+   path('check_availability/', views.check_provider_availability, name='check_availability'),
 
 
 

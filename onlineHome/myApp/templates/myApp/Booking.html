@@ -54,6 +54,46 @@
       .formdiv button:hover {
         background-color: #45a049;
       }
+      .recommendations {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .service-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        width: 180px;
+        padding: 10px;
+        text-align: center;
+        transition: transform 0.3s;
+      }
+
+      .service-card:hover {
+        transform: scale(1.05);
+      }
+
+      .service-card h2 {
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .service-card p {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 15px;
+      }
+
+      .service-card img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
       #map {
         height: 300px;
         width: 100%;
@@ -85,6 +125,29 @@
         object-fit: cover;
         border-radius: 5px;
       }
+      .book-now-btn {
+        display: inline-block;
+        background: linear-gradient(
+          90deg,
+          rgba(181, 40, 197, 1) 0%,
+          rgba(122, 54, 186, 1) 37%,
+          rgba(11, 140, 167, 1) 100%
+        );
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: background 0.4s ease, transform 0.3s;
+        text-decoration: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .book-now-btn:hover {
+        background: linear-gradient(45deg, #ee0979, #ff6a00);
+        transform: scale(1.05);
+      }
     </style>
   </head>
   <body>
@@ -105,6 +168,10 @@
           <div class="service-card">
             <h2>{{ service.title }}</h2>
             <p>{{ service.description }}</p>
+            <img src="{{service.image}}" />
+            <a href="{% url 'booking' service.id %}" class="book-now-btn"
+              >Book Now</a
+            >
           </div>
           {% endfor %}
         </div>
@@ -146,6 +213,7 @@
             id="booking_time"
             name="booking_time"
             value="{{ current_time|date:'Y-m-d\TH:i' }}"
+            style="font-size: 1rem"
           />
 
           <input
@@ -202,10 +270,13 @@
     <script>
       const map = L.map("map").setView([27.7172, 85.324], 13); // Default to Kathmandu
 
+      // Initialize the map layer with OpenStreetMap
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "© OpenStreetMap",
       }).addTo(map);
+
+      let providerMarkers = []; // Array to store provider markers for easy management
 
       // Function to get location coordinates based on the input name and fetch service providers
       function getLocationAndProviders() {
@@ -230,9 +301,6 @@
                 // Add marker for the selected location
                 L.marker(latLng).addTo(map).bindPopup(locationName).openPopup();
 
-                // Update location input with the formatted name
-                document.getElementById("location").value = locationName;
-
                 // Fetch nearby providers based on the geocoded coordinates
                 getNearbyProviders(lat, lon);
               } else {
@@ -247,8 +315,7 @@
         }
       }
 
-      // Fetch nearby service providers based on lat/lng
-      // Fetch nearby service providers based on lat/lng
+      // Fetch and display nearby service providers on the map and in the list
       function getNearbyProviders(lat, lon) {
         fetch(`/get_nearby_providers?lat=${lat}&lng=${lon}`)
           .then((response) => response.json())
@@ -256,31 +323,54 @@
             const providerList = document.getElementById("provider-list");
             providerList.innerHTML = ""; // Clear previous provider list
 
+            // Clear previous markers from the map
+            providerMarkers.forEach((marker) => map.removeLayer(marker));
+            providerMarkers = []; // Reset the markers array
+
             if (data.providers.length === 0) {
               providerList.innerHTML =
                 "<p>No service providers available in this area.</p>";
             } else {
-              // Populate the provider list based on the fetched data
               data.providers.forEach((provider) => {
+                // Add provider to the provider list
                 const providerElement = document.createElement("div");
                 providerElement.className = "provider-item";
                 providerElement.innerHTML = `
-            <img src="${provider.profile_picture}" alt="${provider.name}" />
-            <p>${provider.name}</p>
-          `;
+                  <img src="${provider.profile_picture}" alt="${provider.name}" />
+                  <p>${provider.name}</p>
+                  <p class="provider-rating">Rating: ${provider.rating} ⭐</p>
+                  <p class="provider-experience">Experience: ${provider.experience_years} years</p>
+                `;
 
                 providerElement.addEventListener("click", function () {
-                  console.log("Provider ID:", provider.id); // Debugging line
-
                   // Set provider ID to hidden input
                   document.getElementById("id_provider").value = provider.id;
 
                   // Set provider name to provider_name input
                   document.getElementById("provider_name").value =
-                    provider.name; // This is fine
+                    provider.name;
                 });
 
                 providerList.appendChild(providerElement);
+
+                // Add a marker for the provider on the map
+                const providerMarker = L.marker([
+                  provider.latitude,
+                  provider.longitude,
+                ]).addTo(map).bindPopup(`
+                    <strong>${provider.name}</strong><br>
+                    Rating: ${provider.rating} ⭐<br>
+                    Experience: ${provider.experience_years} years
+                  `);
+
+                // Add marker to the markers array
+                providerMarkers.push(providerMarker);
+                providerMarker
+                  .bindTooltip(provider.name, {
+                    permanent: true,
+                    direction: "top",
+                  })
+                  .openTooltip();
               });
             }
           })
@@ -288,6 +378,147 @@
             console.error("Error fetching providers:", error);
           });
       }
+      function checkProviderAvailability() {
+        const providerId = document.getElementById("id_provider").value;
+        const bookingTime = document.getElementById("booking_time").value;
+
+        if (!providerId || !bookingTime) {
+          alert("Please select a provider and a valid booking time.");
+          return false;
+        }
+
+        // Send an AJAX request to the server to check availability
+        fetch(`/check_availability/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+              .value,
+          },
+          body: JSON.stringify({
+            provider_id: providerId,
+            booking_time: bookingTime,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.is_available) {
+              // Proceed with form submission if the time slot is available
+              document.querySelector("form").submit();
+            } else {
+              alert(
+                "This provider is already booked for the selected time. Please choose another time."
+              );
+            }
+          })
+          .catch((error) => {
+            console.error("Error checking provider availability:", error);
+            alert("Error checking provider availability.");
+          });
+
+        return false; // Prevent form submission until availability is confirmed
+      }
+
+      // Attach the availability check to the submit button
+      document.querySelector("form").onsubmit = function (event) {
+        event.preventDefault(); // Prevent form submission
+        return checkProviderAvailability(); // Validate availability before submission
+      };
+      // Disable booked times in the datetime-local input field
     </script>
   </body>
 </html>
+
+{% comment %}
+<script>
+  const map = L.map("map").setView([27.7172, 85.324], 13); // Default to Kathmandu
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "© OpenStreetMap",
+  }).addTo(map);
+
+  // Function to get location coordinates based on the input name and fetch service providers
+  function getLocationAndProviders() {
+    const locationName = document.getElementById("location").value;
+    if (locationName) {
+      // Geocoding API to get lat/lng from location name
+      fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          locationName
+        )}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data && data.length > 0) {
+            const lat = data[0].lat;
+            const lon = data[0].lon;
+            const latLng = [lat, lon];
+
+            // Set map view to the new location
+            map.setView(latLng, 13);
+
+            // Add marker for the selected location
+            L.marker(latLng).addTo(map).bindPopup(locationName).openPopup();
+
+            // Update location input with the formatted name
+            document.getElementById("location").value = locationName;
+
+            // Fetch nearby providers based on the geocoded coordinates
+            getNearbyProviders(lat, lon);
+          } else {
+            alert("Location not found. Please try again.");
+          }
+        })
+        .catch((err) => {
+          alert("Error fetching location: " + err);
+        });
+    } else {
+      alert("Please enter a location.");
+    }
+  }
+
+  // Fetch nearby service providers based on lat/lng
+  // Fetch nearby service providers based on lat/lng
+  function getNearbyProviders(lat, lon) {
+    fetch(`/get_nearby_providers?lat=${lat}&lng=${lon}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const providerList = document.getElementById("provider-list");
+        providerList.innerHTML = ""; // Clear previous provider list
+
+        if (data.providers.length === 0) {
+          providerList.innerHTML =
+            "<p>No service providers available in this area.</p>";
+        } else {
+          // Populate the provider list based on the fetched data
+          data.providers.forEach((provider) => {
+            const providerElement = document.createElement("div");
+            providerElement.className = "provider-item";
+            providerElement.innerHTML = `
+            <img src="${provider.profile_picture}" alt="${provider.name}" />
+            <p>${provider.name}</p>
+            <p class="provider-rating">Rating: ${provider.rating} ⭐</p>
+            <p class="provider-experience">Experience: ${provider.experience_years} years</p>
+          `;
+
+            providerElement.addEventListener("click", function () {
+              console.log("Provider ID:", provider.id); // Debugging line
+
+              // Set provider ID to hidden input
+              document.getElementById("id_provider").value = provider.id;
+
+              // Set provider name to provider_name input
+              document.getElementById("provider_name").value = provider.name; // This is fine
+            });
+
+            providerList.appendChild(providerElement);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching providers:", error);
+      });
+  }
+</script>
+{% endcomment %}

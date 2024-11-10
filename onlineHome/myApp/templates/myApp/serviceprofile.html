@@ -1,4 +1,5 @@
-{% include 'myApp/service_pronav.html' %} {% load static %}
+{% include 'myApp/service_pronav.html' %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,8 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Service Provider Profile</title>
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      /* Basic reset */
+      /* Reset */
       * {
         margin: 0;
         padding: 0;
@@ -16,120 +18,198 @@
 
       body {
         font-family: "Arial", sans-serif;
-        background-color: #f4f4f9;
-        color: #333;
+        background-color: #0a0803;
+        {% comment %} color: #333; {% endcomment %}
         line-height: 1.6;
       }
 
-      /* Profile container */
-      .profile-container {
-        max-width: 900px;
+      /* Profile Section */
+      .profile-section {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding: 30px;
+        {% comment %} background-color: #4b6587; {% endcomment %}
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px;
+      }
+
+      .profile-image-stars {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .profile-image-stars img {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        border: 5px solid #fbc531;
+        margin-bottom: 10px;
+        transition: transform 0.3s ease;
+      }
+
+      .profile-image-stars img:hover {
+        transform: scale(1.1);
+      }
+
+      .stars {
+        color: #ffd32a;
+        font-size: 1.5rem;
+      }
+
+      .profile-details {
+        flex: 2;
+        margin-left: 20px;
+      }
+
+      .profile-details h1 {
+        font-size: 2.2rem;
+        color: #fbc531;
+        margin-bottom: 10px;
+      }
+
+      .profile-details p {
+        font-size: 1.1rem;
+        color: #dcdde1;
+        margin-bottom: 15px;
+      }
+
+      .contact-info span {
+        display: block;
+        font-size: 1rem;
+        color: #fbc531;
+      }
+
+      /* Chart Container */
+      .chart-container {
+        background-color: #2c3e50;
+        color: #f5f6fa;
+        max-width: 800px;
         margin: 20px auto;
         padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         text-align: center;
       }
 
-      /* Heading styles */
-      h1 {
-        font-size: 2rem;
-        margin-bottom: 15px;
-        color: #2c3e50;
-      }
+      /* Reviews Section */
+      /* Reviews Section */
+.reviews-section {
+  width: 100%;
+  padding: 20px;
+  background-color: #0a0803; /* Darker background to contrast */
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  margin-top: 20px;
+  transition: transform 0.3s ease; /* Add subtle animation for hover */
+}
 
-      /* Profile image */
-      img {
-        max-width: 150px;
-        border-radius: 50%;
-        margin-bottom: 20px;
-        border: 4px solid #3498db;
-      }
+.reviews-section h2 {
+  font-size: 2rem;
+  color: #fbc531;
+  margin-bottom: 20px;
+  text-align: center;
+}
 
-      /* Rating stars */
-      .stars {
-        color: gold;
-        font-size: 1.5rem;
-        margin: 5px 0;
-      }
+.reviews-section ul {
+  list-style: none;
+  padding: 0;
+}
 
-      .stars:hover {
-        cursor: pointer;
-      }
+.reviews-section li {
+  background-color: #34495e; /* Dark gray-blue background */
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
 
-      /* Review section */
-      h2 {
-        font-size: 1.5rem;
-        margin-top: 30px;
-        margin-bottom: 15px;
-        color: #34495e;
-      }
+.reviews-section li:hover {
+  background-color: #424240; /* Light teal background on hover */
+  transform: scale(1.02); /* Slight zoom effect */
+}
 
-      ul {
-        list-style-type: none;
-        padding-left: 0;
-      }
+.reviews-section li strong {
+  font-size: 1.2rem;
+  color: #fbc531;
+}
 
-      li {
-        background-color: #ecf0f1;
-        border-radius: 5px;
-        padding: 15px;
-        margin: 10px 0;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
+.reviews-section li p {
+  font-size: 1rem;
+  color: #ecf0f1;
+  margin: 5px 0;
+}
 
-      li p {
-        font-size: 1rem;
-        color: #7f8c8d;
-      }
+.reviews-section li small {
+  font-size: 0.85rem;
+  color: #bdc3c7;
+  display: block;
+  margin-top: 10px;
+  text-align: right; /* Align the date to the right */
+}
 
-      li small {
-        font-size: 0.8rem;
-        color: #95a5a6;
-      }
+/* Add a custom style for when there are no reviews */
+.reviews-section .no-reviews {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #fbc531;
+  font-weight: 600;
+  padding: 20px;
+}
 
-      /* No reviews message */
-      .no-reviews {
-        font-size: 1.2rem;
-        color: #e74c3c;
-        margin-top: 20px;
-      }
-
-      /* Optional: Button for any action */
+      /* Button */
       .btn {
-        padding: 10px 20px;
-        background-color: #3498db;
-        color: #fff;
+        display: inline-block;
+        padding: 12px 30px;
+        background-color: #fbc531;
+        color: #1b1f3b;
         border: none;
-        border-radius: 5px;
-        cursor: pointer;
+        border-radius: 50px;
         text-decoration: none;
-        margin-top: 20px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        transition: background-color 0.3s, transform 0.2s;
+        text-align: center;
       }
 
       .btn:hover {
-        background-color: #2980b9;
+        background-color: #ffdd59;
+        transform: scale(1.05);
       }
     </style>
   </head>
   <body>
-    <!-- Profile container -->
-    <div class="profile-container">
-      <h1>{{ provider.user.username }}'s Profile</h1>
-      <img src="{{ provider.profile_picture.url }}" alt="Profile Picture" />
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <div class="profile-image-stars">
+        <img src="{{ provider.profile_picture.url }}" alt="Profile Picture" />
+        <div class="stars">
+          {% for star in filled_stars %}<span>★</span>{% endfor %}
+          {% for star in empty_stars %}<span>☆</span>{% endfor %}
+        </div>
+      </div>
+      <div class="profile-details">
+        <h1 class="profile-name">{{ provider.user.username }}'s Profile</h1>
+        <p class="contact-info">
+          <span><strong>Phone:</strong> {{ provider.phone_number }}</span>
+          <span><strong>Email:</strong> {{ provider.user.email }}</span>
+        </p>
+        <a href="#" class="btn">Contact Provider</a>
+      </div>
+    </div>
 
-      <p>
-        <strong>Average Rating:</strong>
-        {% for star in filled_stars %}
-        <span class="stars">★</span>
-        <!-- Filled star -->
-        {% endfor %} {% for star in empty_stars %}
-        <span class="stars">☆</span>
-        <!-- Empty star -->
-        {% endfor %}
-      </p>
+    <!-- Chart Container -->
+    <div class="chart-container">
+      <h2>Services Completed</h2>
+      <canvas id="servicesChart" style="height: 300px; max-height: 300px"></canvas>
+    </div>
 
+    <!-- Reviews Section -->
+    <div class="reviews-section">
       <h2>Reviews</h2>
       {% if reviews %}
       <ul>
@@ -138,16 +218,64 @@
           <strong>{{ review.customer.user.username }}:</strong>
           <p>Rating: {{ review.rating }}/5</p>
           <p>{{ review.comment }}</p>
-          <p><small>Submitted on: {{ review.created_at }}</small></p>
+          <small>Submitted on: {{ review.created_at }}</small>
         </li>
         {% endfor %}
       </ul>
       {% else %}
       <p class="no-reviews">No reviews yet.</p>
       {% endif %}
-
-      <!-- Optional: Action button (e.g., contact, book service, etc.) -->
-      <a href="#" class="btn">Contact Provider</a>
     </div>
+
+    <!-- Chart.js Script -->
+    <script>
+      const servicesData = {{ services_by_day|safe }};
+      const labels = Object.keys(servicesData);
+      const data = Object.values(servicesData);
+
+      const ctx = document.getElementById('servicesChart').getContext('2d');
+      const servicesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Services Completed',
+            data: data,
+            backgroundColor: 'rgba(241, 196, 15, 0.2)',
+            borderColor: '#fbc531',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: '#f5f6fa'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#f5f6fa'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#fbc531'
+              }
+            }
+          }
+        }
+      });
+    </script>
   </body>
 </html>

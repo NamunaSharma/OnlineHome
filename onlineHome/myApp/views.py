@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+from itertools import count
+import json
 import math
 from pyexpat.errors import messages
 from django.http import HttpResponse, JsonResponse
@@ -116,7 +119,15 @@ def create_booking(request, service_id=None):
         try:
             customer = request.user.customer  # Assuming a OneToOne relationship between User and Customer
         except AttributeError:
-            customer = None  # Handle the case where no customer is associated with the user
+            customer = None  
+        existing_booking = Booking.objects.filter(provider=provider, booking_time=booking_time)
+        if existing_booking.exists():
+            # Handle the case where the provider is already booked at this time
+            return render(request, 'myApp/Booking.html', {
+                'service': service,
+                'recommendations': recommendations,
+                'error': "This provider is already booked at the selected time. Please choose another time.",
+            })
 
         if customer and provider:
             # Create and save the booking if both customer and provider are valid
@@ -141,6 +152,11 @@ def services_view(request):
     services = Service.objects.all()  # Fetch all services from the database
     return render(request, 'MyApp/services.html', {'services': services})
 
+from django.db.models import Count
+from datetime import datetime, timedelta
+from django.db.models.functions import TruncDay
+
+
 def provider_profile(request, provider_id):
     provider = ServiceProvider.objects.get(user_id=provider_id)
     
@@ -156,6 +172,15 @@ def provider_profile(request, provider_id):
     # Calculate filled and empty stars
     filled_stars = int(average_rating)
     empty_stars = 5 - filled_stars
+    last_week = datetime.now() - timedelta(days=7)
+    completed_services = (
+        provider.bookings.filter(service_completed=True, booking_time__gte=last_week)
+        .annotate(day=TruncDay('booking_time'))
+        .values('day')
+        .annotate(count=Count('id'))
+        .order_by('day')
+    )
+    services_by_day = {entry['day'].strftime('%a'): entry['count'] for entry in completed_services}
 
     context = {
         'provider': provider,
@@ -163,6 +188,7 @@ def provider_profile(request, provider_id):
         'average_rating': average_rating,
         'filled_stars': range(filled_stars),
         'empty_stars': range(empty_stars),
+        'services_by_day': services_by_day,
     }
 
     return render(request, 'myApp/serviceprofile.html', context)
@@ -245,6 +271,7 @@ def get_nearby_providers(request):
     # Get all service providers from the database
     service_providers = ServiceProvider.objects.all()
 
+
     # Find nearest providers using the haversine distance logic
     nearest_providers = find_nearest_service_providers((lat, lon), service_providers)
 
@@ -258,7 +285,9 @@ def get_nearby_providers(request):
             'name': provider.user.username,
             'profile_picture': provider.profile_picture.url,
             'latitude': provider.latitude,
-            'longitude': provider.longitude
+            'longitude': provider.longitude,
+            'rating': provider.average_rating if isinstance(provider.average_rating, float) else provider.average_rating(),
+            'experience_years': provider.experience_years,
         }
         for provider in nearest_providers
     ]
@@ -553,3 +582,23 @@ def submit_review(request, booking_id):
     
     # Render the review submission template
     return render(request, 'myApp/submit_review.html', context)
+
+
+from django.utils.dateparse import parse_datetime
+def check_provider_availability(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        provider_id = data.get('provider_id')
+        booking_time = data.get('booking_time')
+        
+        # Parse the datetime string into a datetime object
+        booking_time = parse_datetime(booking_time) # type: ignore
+
+        # Check if there is an existing booking for the provider at the given time
+        existing_booking = Booking.objects.filter(
+            provider_id=provider_id, 
+            booking_time__date=booking_time.date()
+        ).exists()
+
+        # Return a JSON response with the availability status
+        return JsonResponse({'is_available': not existing_booking})

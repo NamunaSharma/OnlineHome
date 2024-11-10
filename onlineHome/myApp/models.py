@@ -74,6 +74,7 @@ class Booking(models.Model):
     def __str__(self):
         return f'Booking by {self.customer.user.username} for {self.customer.user.email}'
     
+    
 
 class Review(models.Model):
     provider = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE, related_name='reviews')
