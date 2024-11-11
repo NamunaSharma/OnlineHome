@@ -70,6 +70,20 @@
       .navbar a:hover::after {
         width: 100%;
       }
+      .logout-btn {
+        background-color: #ff6a00; /* Color for the logout button */
+        color: white;
+        padding: 7px 20px;
+        border-radius: 7px;
+        text-decoration: none;
+        font-size: 1rem;
+        transition: background-color 0.3s ease;
+      }
+      
+      .logout-btn:hover {
+        background-color: #ee0979; /* Hover effect */
+      }
+      
     </style>
   </head>
   <body>
@@ -80,11 +94,16 @@
         <div class="navbar-links">
           <a href="#home">Home</a>
           <a href="#about">About Us</a>
+          <a href="#contact">Contact</a>
           <a href="{% url 'categories' %}">Categories</a>
           <a href="{% url 'customer_profile' user_id=request.user.id %}"
             >Account</a
           >
-          <a href="#contact">Contact</a>
+          <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+        
         </div>
       </nav>
     </div>

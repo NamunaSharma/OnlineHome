@@ -183,7 +183,7 @@
       <div class="formdiv">
         <form method="POST" action="{% url 'booking' service_id=service.id %}">
           {% csrf_token %}
-          <p class="price">Price: ${{ service.price }}</p>
+          <p class="price">Price: {{ service.price }}</p>
 
           <label for="location">Location:</label>
           <input

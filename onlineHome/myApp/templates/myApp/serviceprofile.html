@@ -6,8 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Service Provider Profile</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
     <style>
       /* Reset */
       * {
@@ -17,10 +16,60 @@
       }
 
       body {
-        font-family: "Arial", sans-serif;
-        background-color: #0a0803;
-        {% comment %} color: #333; {% endcomment %}
+        font-family: "Roboto", sans-serif;
+        background-color: #ededeb; /* Set the default background to gray */
+        color: #333;
         line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 100px; /* Space for the fixed navbar */
+      }
+
+      /* Navbar */
+      nav.navbar {
+        position: fixed; /* Fix the navbar at the top */
+        top: 0;
+        width: 100%;
+        background-color: #333; /* Gray color for navbar */
+        padding: 15px 20px;
+        color: white;
+        z-index: 10;
+      }
+
+      .navbar-logo {
+        font-size: 1.5rem;
+        color: #fff;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      .navbar-links {
+        display: flex;
+        gap: 20px;
+      }
+
+      .navbar-links a {
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+      }
+
+      .navbar-links a:hover {
+        background-color: #555;
+      }
+
+      /* Profile Container */
+      .profile-container {
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #ededeb; /* Set gray background for profile section */
+        padding-top: 60px; /* Additional padding to avoid overlap with navbar */
       }
 
       /* Profile Section */
@@ -29,7 +78,7 @@
         display: flex;
         align-items: center;
         padding: 30px;
-        {% comment %} background-color: #4b6587; {% endcomment %}
+        {% comment %} background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), {% endcomment %}
         border-radius: 15px;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         margin-bottom: 20px;
@@ -43,16 +92,12 @@
       }
 
       .profile-image-stars img {
-        width: 200px;
-        height: 200px;
+        width: 300px;
+        height: 300px;
         border-radius: 50%;
         border: 5px solid #fbc531;
         margin-bottom: 10px;
         transition: transform 0.3s ease;
-      }
-
-      .profile-image-stars img:hover {
-        transform: scale(1.1);
       }
 
       .stars {
@@ -66,175 +111,181 @@
       }
 
       .profile-details h1 {
+        font-family: "Poppins", sans-serif;
         font-size: 2.2rem;
-        color: #fbc531;
+        font-weight: 700;
+        color: #000000;
         margin-bottom: 10px;
-      }
-
-      .profile-details p {
-        font-size: 1.1rem;
-        color: #dcdde1;
-        margin-bottom: 15px;
       }
 
       .contact-info span {
         display: block;
-        font-size: 1rem;
-        color: #fbc531;
+        font-size: 1.1rem;
+        color: #000000;
+        margin-bottom: 8px;
       }
 
       /* Chart Container */
       .chart-container {
-        background-color: #2c3e50;
+        background-color: #333; /* Set different color for the chart container */
         color: #f5f6fa;
-        max-width: 800px;
-        margin: 20px auto;
+        width: 60%;
+        height: 400px; /* Adjust height */
         padding: 20px;
         border-radius: 15px;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         text-align: center;
+        margin-top: 20px;
       }
 
       /* Reviews Section */
-      /* Reviews Section */
-.reviews-section {
-  width: 100%;
-  padding: 20px;
-  background-color: #0a0803; /* Darker background to contrast */
-  border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  margin-top: 20px;
-  transition: transform 0.3s ease; /* Add subtle animation for hover */
-}
+      .reviews-section {
+        width: 100%;
+        padding: 40px;
+        background-color: #f5f6fa; /* Light background */
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        margin-top: 20px;
+        text-align: center;
+      }
+      
+      
+      .reviews-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start; /* Aligns reviews to the left */
+      }
+      
+      .review-card {
+        background-color: #ffffff;
+        border-radius: 15px;
+        padding: 20px;
+        width: 300px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      
+      .review-text p {
+        font-style: italic;
+        color: #333;
+        margin-bottom: 15px;
+      }
+      
+      .reviewer-info {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+      }
+      
+      .reviewer-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+      
+      .reviewer-details strong {
+        font-size: 1rem;
+        color: #333;
+      }
+      
+      .reviewer-details span {
+        font-size: 0.9rem;
+        color: #777;
+      }      
 
-.reviews-section h2 {
-  font-size: 2rem;
-  color: #fbc531;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.reviews-section ul {
-  list-style: none;
-  padding: 0;
-}
-
-.reviews-section li {
-  background-color: #34495e; /* Dark gray-blue background */
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 15px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.reviews-section li:hover {
-  background-color: #424240; /* Light teal background on hover */
-  transform: scale(1.02); /* Slight zoom effect */
-}
-
-.reviews-section li strong {
-  font-size: 1.2rem;
-  color: #fbc531;
-}
-
-.reviews-section li p {
-  font-size: 1rem;
-  color: #ecf0f1;
-  margin: 5px 0;
-}
-
-.reviews-section li small {
-  font-size: 0.85rem;
-  color: #bdc3c7;
-  display: block;
-  margin-top: 10px;
-  text-align: right; /* Align the date to the right */
-}
-
-/* Add a custom style for when there are no reviews */
-.reviews-section .no-reviews {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #fbc531;
-  font-weight: 600;
-  padding: 20px;
-}
-
-      /* Button */
       .btn {
         display: inline-block;
-        padding: 12px 30px;
+        padding: 12px 25px;
         background-color: #fbc531;
         color: #1b1f3b;
         border: none;
-        border-radius: 50px;
+        border-radius: 30px;
         text-decoration: none;
         font-weight: 600;
-        letter-spacing: 1px;
-        transition: background-color 0.3s, transform 0.2s;
+        font-size: 1.1rem;
+        transition: background-color 0.3s ease;
+        margin-top: 20px;
         text-align: center;
       }
 
       .btn:hover {
         background-color: #ffdd59;
-        transform: scale(1.05);
       }
     </style>
   </head>
+
   <body>
-    <!-- Profile Section -->
-    <div class="profile-section">
-      <div class="profile-image-stars">
-        <img src="{{ provider.profile_picture.url }}" alt="Profile Picture" />
-        <div class="stars">
-          {% for star in filled_stars %}<span>★</span>{% endfor %}
-          {% for star in empty_stars %}<span>☆</span>{% endfor %}
+    <!-- Navbar structure -->
+    <nav class="navbar">
+      <a href="#" class="navbar-logo">ServiceProvider</a>
+      <div class="navbar-links">
+        <a href="{% url 'service_provider' %}">Home</a>
+        <a href="{% url 'provider_bookings' provider_id=request.user.id %}">Bookings</a>
+        <a href="{% url 'provider_profile' provider_id=request.user.id %}">Profile</a>
+      </div>
+    </nav>
+
+    <div class="profile-container">
+      <!-- Profile Section -->
+      <div class="profile-section">
+        <div class="profile-image-stars">
+          <img src="{{ provider.profile_picture.url }}" alt="Profile Picture" />
+          <div class="stars">
+            {% for star in filled_stars %}<span>★</span>{% endfor %}
+            {% for star in empty_stars %}<span>☆</span>{% endfor %}
+          </div>
+        </div>
+        <div class="profile-details">
+          <h1>{{ provider.user.username }}'s Profile</h1>
+          <p class="contact-info">
+            <span><strong>Phone:</strong> {{ provider.phone_number }}</span>
+            <span><strong>Email:</strong> {{ provider.user.email }}</span>
+          </p>
+          <a href="#" class="btn">Contact Provider</a>
         </div>
       </div>
-      <div class="profile-details">
-        <h1 class="profile-name">{{ provider.user.username }}'s Profile</h1>
-        <p class="contact-info">
-          <span><strong>Phone:</strong> {{ provider.phone_number }}</span>
-          <span><strong>Email:</strong> {{ provider.user.email }}</span>
-        </p>
-        <a href="#" class="btn">Contact Provider</a>
+
+      <!-- Chart Container -->
+      <div class="chart-container">
+        <h2>Services Completed</h2>
+        <canvas id="servicesChart"></canvas>
       </div>
-    </div>
-
-    <!-- Chart Container -->
-    <div class="chart-container">
-      <h2>Services Completed</h2>
-      <canvas id="servicesChart" style="height: 300px; max-height: 300px"></canvas>
-    </div>
-
-    <!-- Reviews Section -->
-    <div class="reviews-section">
-      <h2>Reviews</h2>
-      {% if reviews %}
-      <ul>
-        {% for review in reviews %}
-        <li>
-          <strong>{{ review.customer.user.username }}:</strong>
-          <p>Rating: {{ review.rating }}/5</p>
-          <p>{{ review.comment }}</p>
-          <small>Submitted on: {{ review.created_at }}</small>
-        </li>
-        {% endfor %}
-      </ul>
-      {% else %}
+  <h2>Reviews</h2>
+  <div class="reviews-container">
+    {% if reviews %}
+      {% for review in reviews %}
+      <div class="review-card">
+        <div class="review-text">
+          <p>"{{ review.comment }}"</p>
+        </div>
+        <div class="reviewer-info">
+          <img src="{{ review.customer.profile_picture.url }}" alt="{{ review.customer.user.username }}" class="reviewer-img" />
+          <div class="reviewer-details">
+            <strong>{{ review.customer.user.username }}</strong>
+            <span>@{{ review.customer.user.username }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
       <p class="no-reviews">No reviews yet.</p>
-      {% endif %}
+    {% endif %}
+  </div>
     </div>
 
-    <!-- Chart.js Script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       const servicesData = {{ services_by_day|safe }};
       const labels = Object.keys(servicesData);
       const data = Object.values(servicesData);
 
       const ctx = document.getElementById('servicesChart').getContext('2d');
-      const servicesChart = new Chart(ctx, {
+      new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
@@ -252,28 +303,10 @@
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              },
-              ticks: {
-                color: '#f5f6fa'
-              }
-            },
-            x: {
-              ticks: {
-                color: '#f5f6fa'
-              }
-            }
+            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#f5f6fa' } },
+            x: { ticks: { color: '#f5f6fa' } }
           },
-          plugins: {
-            legend: {
-              labels: {
-                color: '#fbc531'
-              }
-            }
-          }
+          plugins: { legend: { labels: { color: '#fbc531' } } }
         }
       });
     </script>

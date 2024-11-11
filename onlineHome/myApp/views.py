@@ -180,7 +180,6 @@ from django.db.models import Count
 from datetime import datetime, timedelta
 from django.db.models.functions import TruncDay
 
-
 def provider_profile(request, provider_id):
     provider = ServiceProvider.objects.get(user_id=provider_id)
     
