@@ -1,4 +1,5 @@
-{% include 'myApp/navbar.html' %} {% load static %}
+{% include 'myApp/navbar.html' %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -155,43 +156,50 @@
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
-        background-color: white;
+        background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       }
-
-      .table th,
+    
+      /* Table Header */
+      .table th {
+        background-color: #48616a; /* Matching header color */
+        color: #fff;
+        font-weight: 600;
+        padding: 15px;
+        font-size: 1rem;
+        text-align: left;
+      }
+    
+      /* Table Rows */
       .table td {
         padding: 15px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
+        border-bottom: 1px solid rgba(72, 97, 106, 0.2); /* Soft matching border color */
         font-size: 1rem;
+        color: #333;
       }
-
-      .table th {
-        background-color: #6b0f1a;
-        color: white;
-        font-weight: 600;
-      }
-
+    
+      /* Hover Effect */
       .table tr:hover {
-        background-color: #f9f9f9;
+        background-color: rgba(146, 137, 137, 0.1); /* Subtle hover color */
       }
-
+    
+      /* Button Styles within Table */
       .table td a {
         padding: 8px 15px;
-        background-color: #6b0f1a;
+        background-color: #48616a;
         color: white;
         text-decoration: none;
         border-radius: 30px;
         transition: background-color 0.3s ease;
+        font-size: 0.9rem;
       }
-
+    
       .table td a:hover {
-        background-color: #b91372;
+        background-color: #b91372; /* Hover color for buttons */
       }
-
+    
       .table td span {
         color: #888;
         font-size: 0.9rem;
@@ -280,30 +288,36 @@
             <td>{{ booking.booking_time }}</td>
             <td>
               {% if booking.status == "completed" %}
-                  {% if booking.needs_review %}
-                      <!-- Submit Review button if review is needed -->
-                      <a href="{% url 'submit_review' booking.id %}" class="btn btn-primary">Submit Review</a>
-                  {% else %}
-                      <!-- Message when review is already submitted -->
-                      <span class="text-muted">Review Submitted</span>
-                  {% endif %}
+                {% if booking.needs_review %}
+                <!-- Submit Review button if review is needed -->
+                <a
+                  href="{% url 'submit_review' booking.id %}"
+                  class="btn btn-primary"
+                  >Submit Review</a>
+                {% else %}
+                <!-- Message when review is already submitted -->
+                <span class="text-muted">Review Submitted</span>
+                {% endif %}
               {% else %}
-                  {% if booking.status == "pending" %}
-                      <!-- Button for pending bookings if review is allowed -->
-                      <a href="{% url 'submit_review' booking.id %}" class="btn btn-primary">Submit Review</a>
-                  {% else %}
-                      <span class="text-muted">No action required</span>
-                  {% endif %}
+                {% if booking.status == "pending" %}
+                <!-- Button for pending bookings if review is allowed -->
+                <a
+                  href="{% url 'submit_review' booking.id %}"
+                  class="btn btn-primary"
+                  >Submit Review</a>
+                {% else %}
+                <span class="text-muted">No action required</span>
+                {% endif %}
               {% endif %}
-          </td>
-          
+            </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
       {% else %}
       <p>You have no bookings yet.</p>
-      {% endif %} {% endblock %}
+      {% endif %}
+      {% endblock %}
     </div>
   </body>
 </html>

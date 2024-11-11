@@ -16,6 +16,7 @@ class ServiceProvider(models.Model):
     latitude = models.FloatField(default=00.0)
     longitude = models.FloatField( default=00.0)
     profile_picture = models.ImageField(upload_to='provider_profiles/', blank=True, null=True)
+    is_approved = models.BooleanField(default=False) 
 
     def __str__(self):
         return f'{self.user.username} - {self.service_type}'

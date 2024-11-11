@@ -9,41 +9,56 @@ from django.contrib.auth import authenticate, login
 from .forms import BookingForm, RegistrationForm, ReviewForm, ServiceProviderForm, CustomerForm
 from .models import Booking, Category, ServiceProvider, Customer,Service
 from django.contrib import messages
+
 def register(request):
     if request.method == 'POST':
-        form = RegistrationForm(request.POST,request.FILES)
+        form = RegistrationForm(request.POST, request.FILES)
         if form.is_valid():
+            # Create the user object without saving to DB immediately
             user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.save()
+            user.set_password(form.cleaned_data['password'])  # Hash the password
+            user.save()  # Save the user
             
+            # Check the role and create the corresponding model instance
             role = form.cleaned_data['role']
+            
             if role == 'service_provider':
-                service_provider_form = ServiceProviderForm(request.POST,request.FILES)
+                service_provider_form = ServiceProviderForm(request.POST, request.FILES)
                 if service_provider_form.is_valid():
+                    # Initialize ServiceProvider instance but don't save yet
                     service_provider = service_provider_form.save(commit=False)
                     service_provider.user = user
-                    service_provider.save()
+                    service_provider.is_approved = False  # Set is_approved explicitly to False
+                    service_provider.save()  # Now save the instance
+                    messages.success(request, "Registration successful as Service Provider")
                 else:
-                    print("Service Provider Form Errors:", ServiceProviderForm.errors)
-                    print(service_provider_form.errors)  # Debugging to show form errors
-            elif role == 'customer':
-                customer_form = CustomerForm(request.POST,request.FILES)
+                    messages.error(request, f"Service Provider form errors: {service_provider_form.errors}")
+                    return redirect('register')
+            else:  # It's a customer
+                customer_form = CustomerForm(request.POST, request.FILES)
                 if customer_form.is_valid():
                     customer = customer_form.save(commit=False)
-                    customer.user = user
+                    customer.user = user  # Link the user to the customer model
                     customer.save()
+                    messages.success(request, "Registration successful as Customer")
                 else:
-                    print("Service Provider Form Errors:", CustomerForm.errors)
-                    print(customer_form.errors)  # Debugging to show form errors
+                    messages.error(request, f"Customer form errors: {customer_form.errors}")
+                    return redirect('register')
 
-            return redirect('login')  # Redirect to login page
-
+            # Log the user in automatically after registration
+            login(request, user)
+            return redirect('login')  # Redirect to 'home' or dashboard page
+        else:
+            messages.error(request, f"Registration form errors: {form.errors}")
+            return redirect('register')
     else:
         form = RegistrationForm()
-    
     return render(request, 'myApp/register.html', {'form': form})
 
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import ServiceProvider
 
 def login_view(request):
     if request.method == 'POST':
@@ -52,19 +67,28 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            login(request, user)
-            # Debug to check role
+            # Check if the user is a service provider
             if hasattr(user, 'serviceprovider'):
-                print("User is a service provider")
-                return redirect('service_provider')  # Redirect to service provider page
+                service_provider = user.serviceprovider
+                if not service_provider.is_approved:
+                    messages.error(request, "Your account is awaiting admin approval.")
+                    return redirect('login')
+                else:
+                    # Proceed if the service provider is approved
+                    login(request, user)
+                    return redirect('service_provider')  # Redirect to service provider page
             elif hasattr(user, 'customer'):
-                print("User is a customer")
+                # Proceed if the user is a customer
+                login(request, user)
                 return redirect('customer')  # Redirect to customer page
             else:
-                print("User role not found")
-                return render(request, 'myApp/login.html', {'error': 'User role not found'})
+                # Handle case where user role is not found
+                messages.error(request, "User role not found.")
+                return redirect('login')
         else:
-            return render(request, 'myApp/login.html', {'error': 'Invalid credentials'})
+            # If authentication fails, show an error message
+            messages.error(request, "Invalid username or password.")
+            return redirect('login')
 
     return render(request, 'myApp/login.html')
 
@@ -454,34 +478,6 @@ def confirm_booking(request, booking_id):
     })
 
 
-# @login_required
-# def submit_review(request, provider_id):
-#     provider = get_object_or_404(ServiceProvider, id=provider_id)
-#     booking = Booking.objects.filter(customer=request.user.customer, provider=provider).last()
-    
-#     # Check if the service has been completed
-#     if booking and booking.status != 'completed':
-#         messages.error(request, "You can only leave a review after the service is completed.")
-#         return redirect('provider_profile', provider_id=provider.id)
-
-#     if request.method == 'POST':
-#         form = ReviewForm(request.POST)
-#         if form.is_valid():
-#             review = form.save(commit=False)
-#             review.customer = request.user.customer
-#             review.provider = provider
-#             review.booking = booking
-#             review.save()
-#             messages.success(request, "Review submitted successfully.")
-#             return redirect('provider_profile', provider_id=provider.id)
-#     else:
-#         form = ReviewForm()
-
-#     context = {
-#         'form': form,
-#         'provider': provider,
-#         'booking': booking,
-#     }
 #     return render(request, 'myApp/submit_review.html', context)
 @login_required
 def mark_service_completed(request, booking_id):
